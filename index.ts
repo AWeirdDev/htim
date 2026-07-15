@@ -145,37 +145,42 @@ type ElementProps<T extends HTMLElement> = Partial<
     Omit<Pick<T, ExtractProps<T>>, ExcludedHTMLProps>
 >;
 
-type HTMLAttributes<T extends HTMLElement> = {
+type Attributes<T extends HTMLElement> = {
     [
         K in keyof ElementProps<T> as CamelToKebab<K & string>
     ]: ElementProps<T>[K];
-} & {
-    /**
-     * CSS styles.
-     *
-     * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/style
-     */
-    style?: string;
+} & EventHandlers<T> & {
+        /**
+         * CSS styles.
+         *
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/style
+         */
+        style?: string;
 
-    /**
-     * HTML classes.
-     *
-     * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/class
-     */
-    class?: string | (string | undefined | null)[];
-};
+        /**
+         * HTML classes.
+         *
+         * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/class
+         */
+        class?: string | (string | undefined | null)[];
+    };
 
-type Attribute<E extends HTMLElement> = HTMLAttributes<E> & {};
 type Contents<E extends HTMLElement> = (
-    string | Attribute<E> | ImmediateCallback<E>
+    string | Attributes<E> | ImmediateCallback<E>
 )[];
 type CreateCallback<E extends HTMLElement> = (
     ...contents: Contents<E>
 ) => Immediate<E>;
+type ImmediateCreate = {
+    [K in keyof HTMLElementTagNameMap]: CreateCallback<
+        HTMLElementTagNameMap[K]
+    >;
+};
 
 export type ImmediateCallback<E extends HTMLElement> = (
     e: Immediate<E>,
 ) => void;
+export type ImmediateEditCallback = (e: ImmediateEdit) => void;
 
 /**
  * Immediate mode specification.
@@ -184,17 +189,27 @@ export type Immediate<E extends HTMLElement> = {
     (): E;
     element: E | null;
     and: (cb: ImmediateCallback<E>) => Immediate<E>;
-} & {
-    [K in keyof HTMLElementTagNameMap]: CreateCallback<
-        HTMLElementTagNameMap[K]
-    >;
-};
+    edit: (cb: ImmediateEditCallback) => void;
+    clear: () => void;
+} & ImmediateCreate;
+const IM_INTERNAL_FIELDS = ["element", "and", "edit", "clear"];
+
+/**
+ * Immediate mode for DOM editing.
+ */
+export type ImmediateEdit = {
+    anchor: Node;
+    tail: Node;
+    finish: () => void;
+} & ImmediateCreate;
+const IME_INTERNAL_FIELDS = ["anchor", "tail", "finish"];
+
 // fields to exclude from immediate mode geeneration
-const INTERNAL_FIELDS = ["element", "and"];
 
 function addAttribute(element: HTMLElement, key: string, value: any) {
     switch (key) {
         case "style":
+            console.log(value);
             element.style = value.toString();
             break;
 
@@ -210,14 +225,19 @@ function addAttribute(element: HTMLElement, key: string, value: any) {
             break;
 
         default:
-            element.setAttribute(key, value.toString());
+            if (key.startsWith("on")) {
+                const eventName = key.slice(2);
+                element.addEventListener(eventName, value);
+            } else {
+                element.setAttribute(key, value.toString());
+            }
             break;
     }
 }
 
 // currying
-function makeTagFunc(parent: Element, tag: string): CreateCallback<any> {
-    return (...contents: Contents<any>) => {
+function makeTagFunc(tag: string) {
+    return (contents: Contents<any>) => {
         const element = document.createElement(tag);
         const immediateMode = immediate(element);
 
@@ -234,13 +254,40 @@ function makeTagFunc(parent: Element, tag: string): CreateCallback<any> {
             }
         }
 
-        // render
-        if (!parent) throw new TypeError("cannot add child: parent is null");
-
-        parent.appendChild(element);
-
-        return immediateMode;
+        return { element, immediateMode };
     };
+}
+
+function immediateEditor(element: HTMLElement): ImmediateEdit {
+    const anchor = document.createComment("htim");
+    element.replaceWith(anchor);
+
+    const res = {
+        anchor,
+        tail: anchor,
+        finish: function () {
+            this.anchor.remove();
+        },
+    };
+
+    return new Proxy(res, {
+        get(target, prop) {
+            if (IME_INTERNAL_FIELDS.includes(prop as any))
+                return Reflect.get(target, prop);
+
+            if (typeof prop === "symbol") return undefined;
+
+            return (...contents: Contents<any>) => {
+                const { element, immediateMode } = makeTagFunc(prop)(contents);
+
+                const anchor = Reflect.get(target, "anchor");
+                const tail = Reflect.get(target, "tail");
+                anchor.parentNode!.insertBefore(element, tail.nextSibling);
+
+                return immediateMode;
+            };
+        },
+    }) as any;
 }
 
 /**
@@ -259,22 +306,46 @@ export function immediate<E extends HTMLElement>(
         },
         {
             element,
+
             and(cb: ImmediateCallback<E>) {
                 if (!this.element) return this;
                 cb(this as Immediate<E>);
                 return this;
+            },
+
+            edit(cb: ImmediateEditCallback) {
+                if (!this.element) throw new TypeError("element is null");
+
+                const editor = immediateEditor(this.element);
+                cb(editor);
+                editor.finish();
+            },
+
+            clear() {
+                if (!this.element) return;
+                this.element.textContent = ""; // clears with a text node
             },
         },
     );
 
     return new Proxy(res, {
         get(target, prop) {
-            if (INTERNAL_FIELDS.includes(prop as any))
+            if (IM_INTERNAL_FIELDS.includes(prop as any))
                 return Reflect.get(target, prop);
 
             if (typeof prop === "symbol") return undefined;
 
-            return makeTagFunc(Reflect.get(target, "element")!, prop);
+            return (...contents: Contents<E>) => {
+                const { element, immediateMode } = makeTagFunc(prop)(contents);
+
+                // render
+                const parent = Reflect.get(target, "element");
+                if (!parent)
+                    throw new TypeError("cannot add child: parent is null");
+                parent.appendChild(element);
+
+                return immediateMode;
+            };
         },
     }) as any;
 }
