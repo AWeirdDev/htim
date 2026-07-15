@@ -4,10 +4,15 @@
   "module": "index.ts",
   "type": "module",
   "exports": {
-    "*": "./index.ts"
+    "types": "./dist/index.d.mts",
+    "node": "./index.mjs"
+  },
+  "scripts": {
+    "build": "tsdown index.ts --dts --out-dir dist"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "tsdown": "^0.22.8"
   },
   "peerDependencies": {
     "typescript": "^5"
