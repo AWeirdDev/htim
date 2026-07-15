@@ -1,6 +1,19 @@
 {
   "name": "htim",
+  "version": "0.0.1",
   "description": "HTML immediate mode",
+  "author": {
+    "name": "AWeirdDev",
+    "email": "awdjared@gmail.com",
+    "url": "https://github.com/AWeirdDev"
+  },
+  "readme": "README.md",
+  "keywords": [
+    "html",
+    "immediate",
+    "dom"
+  ],
+  "license": "MIT OR UNLICENSED",
   "module": "index.ts",
   "type": "module",
   "exports": {
