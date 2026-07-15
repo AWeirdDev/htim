@@ -2,6 +2,9 @@
   "name": "htim",
   "version": "0.0.1",
   "description": "HTML immediate mode",
+  "repository": {
+    "url": "https://github.com/AWeirdDev/htim"
+  },
   "author": {
     "name": "AWeirdDev",
     "email": "awdjared@gmail.com",
@@ -23,6 +26,7 @@
   "scripts": {
     "build": "tsdown index.ts --dts --out-dir dist"
   },
+  "dependencies": {},
   "devDependencies": {
     "@types/bun": "latest",
     "tsdown": "^0.22.8"
