@@ -9,7 +9,7 @@ getDom("#app").and((app: Immediate<HTMLDivElement>) => {
 
     app.ul((ul) => {
         for (let i = 0; i < 10; i++) {
-            ul.li(i.toString());
+            ul.li(i.toString(), { class: ["red"] });
         }
     });
 });
