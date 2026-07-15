@@ -1,5 +1,5 @@
 {
-  "name": "htim",
+  "name": "@aweirddev/htim",
   "version": "0.0.1",
   "description": "HTML immediate mode",
   "repository": {
@@ -21,10 +21,13 @@
   "type": "module",
   "exports": {
     "types": "./dist/index.d.mts",
-    "node": "./index.mjs"
+    "*": "./dist/index.mjs"
   },
   "scripts": {
-    "build": "tsdown index.ts --dts --out-dir dist"
+    "build": "tsdown index.ts --dts --out-dir dist",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "dependencies": {},
   "devDependencies": {
@@ -33,5 +36,9 @@
   },
   "peerDependencies": {
     "typescript": "^5"
-  }
+  },
+  "files": [
+    "./index.ts",
+    "./dist/*"
+  ]
 }
