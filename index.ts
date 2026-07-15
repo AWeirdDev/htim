@@ -149,6 +149,20 @@ type HTMLAttributes<T extends HTMLElement> = {
     [
         K in keyof ElementProps<T> as CamelToKebab<K & string>
     ]: ElementProps<T>[K];
+} & {
+    /**
+     * CSS styles.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/style
+     */
+    style?: string;
+
+    /**
+     * HTML classes.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/class
+     */
+    class?: string | (string | undefined | null)[];
 };
 
 type Attribute<E extends HTMLElement> = HTMLAttributes<E> & {};
@@ -163,6 +177,9 @@ export type ImmediateCallback<E extends HTMLElement> = (
     e: Immediate<E>,
 ) => void;
 
+/**
+ * Immediate mode specification.
+ */
 export type Immediate<E extends HTMLElement> = {
     (): E;
     element: E | null;
@@ -174,6 +191,29 @@ export type Immediate<E extends HTMLElement> = {
 };
 // fields to exclude from immediate mode geeneration
 const INTERNAL_FIELDS = ["element", "and"];
+
+function addAttribute(element: HTMLElement, key: string, value: any) {
+    switch (key) {
+        case "style":
+            element.style = value.toString();
+            break;
+
+        case "class":
+            if (Array.isArray(value)) {
+                element.className = value
+                    .map((item: string) => item?.trim())
+                    .filter((token) => token)
+                    .join(" ");
+            } else {
+                element.className = value.toString();
+            }
+            break;
+
+        default:
+            element.setAttribute(key, value.toString());
+            break;
+    }
+}
 
 // currying
 function makeTagFunc(parent: Element, tag: string): CreateCallback<any> {
@@ -189,7 +229,7 @@ function makeTagFunc(parent: Element, tag: string): CreateCallback<any> {
                 content(immediateMode);
             } else {
                 Object.entries(content).forEach(([key, value]) => {
-                    element.setAttribute(key, value!.toString());
+                    addAttribute(element, key, value);
                 });
             }
         }
@@ -203,6 +243,13 @@ function makeTagFunc(parent: Element, tag: string): CreateCallback<any> {
     };
 }
 
+/**
+ * Apply immediate mode to the provided element.
+ * The type parameter `E` allows you to specify what type
+ * of element it is. For example, `HTMLDivElement`.
+ *
+ * @param element The target element.
+ */
 export function immediate<E extends HTMLElement>(
     element: E | null,
 ): Immediate<E> {
@@ -232,12 +279,32 @@ export function immediate<E extends HTMLElement>(
     }) as any;
 }
 
+/**
+ * Get a DOM element and apply immediate mode to it.
+ *
+ * This function does **NOT** raise.
+ *
+ * You can check if it's successful by checking the `element` field
+ * in the `Immediate` object, but it's generally discouraged. You
+ * can either use `.and(...)` to setup a callback if the element
+ * is found, or just don't use this function and use
+ * `immediate(element)` to apply immediate mode from an element
+ * directly instead.
+ *
+ * @param selector The CSS selector.
+ * @returns
+ */
 export function getDom<E extends HTMLElement = any>(
     selector: string,
 ): Immediate<E> {
     return immediate(document.querySelector(selector));
 }
 
+/**
+ * Get multiple DOM elements and put them in immediate mode.
+ *
+ * @param selector The CSS selector.
+ */
 export function getDoms(selector: string): Immediate<any>[] {
     return (
         Array.from(document.querySelectorAll(selector)) as HTMLElement[]
