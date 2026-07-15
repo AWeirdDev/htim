@@ -5,11 +5,8 @@ getDom("#app").and((app: Immediate<HTMLDivElement>) => {
     // thus the wording "and," which signals `andThen`
 
     app.h1("My App");
-    app.p("This gets added to #app as we write.");
+    const p = app.p("This gets added to #app as we write.");
 
-    app.ul((ul) => {
-        for (let i = 0; i < 10; i++) {
-            ul.li(i.toString(), { class: ["red"] });
-        }
-    });
+    p.clear();
+    p.b("lol");
 });
