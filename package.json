@@ -31,8 +31,11 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "@aweirddev/htim": "^0.0.1",
+    "@shikijs/vitepress-twoslash": "^4.3.1",
     "@types/bun": "latest",
-    "tsdown": "^0.22.8"
+    "tsdown": "^0.22.8",
+    "vitepress": "^1.6.4"
   },
   "peerDependencies": {
     "typescript": "^5"
