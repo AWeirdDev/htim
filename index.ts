@@ -8,7 +8,7 @@
     This library is deliberately close to the native JavaScript API, and
     no such step as compiling (i.e., transpiling) is needed. Fuck that.
 
-    # Usage
+    # Example
     To start, you can use the `getDom()` method to query an element from
     the DOM. Then, you can start using the `Immediate` functionalities.
 
@@ -16,7 +16,8 @@
             app.h1("Hello, World!");
         })
 
-    Notice the `.and()` only runs when that element is found.
+    Notice that the function in  `.and()` only runs when that element is
+    found.
  */
 
 type EventHandlers<T> = {
@@ -175,6 +176,14 @@ type ImmediateCreate = {
     [K in keyof HTMLElementTagNameMap]: CreateCallback<
         HTMLElementTagNameMap[K]
     >;
+} & {
+    /**
+     * Create custom element.
+     */
+    custom: <E extends HTMLElement>(
+        tag: string,
+        ...contents: Contents<E>
+    ) => Immediate<E>;
 };
 
 export type ImmediateCallback<E extends HTMLElement> = (
@@ -186,10 +195,38 @@ export type ImmediateEditCallback = (e: ImmediateEdit) => void;
  * Immediate mode specification.
  */
 export type Immediate<E extends HTMLElement> = {
+    /*
+     * Get the underlying element, if exists.
+     */
     (): E;
+
+    /**
+     * The underlying element. It may be `null`.
+     */
     element: E | null;
+
+    /**
+     * Run the callback when the element exists.
+     *
+     * @param cb The callback to run.
+     */
     and: (cb: ImmediateCallback<E>) => Immediate<E>;
+
+    /**
+     * Edit (in other words, **replace**) this element.
+     * This should generally be a one-time action because then this
+     * element will be replaced away.
+     *
+     * @param cb
+     */
     edit: (cb: ImmediateEditCallback) => void;
+
+    /**
+     * Clear all nodes within this element.
+     *
+     * Internally, this replaces everything with a singular text node
+     * using `.textContent = ""`.
+     */
     clear: () => void;
 } & ImmediateCreate;
 const IM_INTERNAL_FIELDS = ["element", "and", "edit", "clear"];
@@ -237,9 +274,12 @@ function addAttribute(element: HTMLElement, key: string, value: any) {
 
 // currying
 function makeTagFunc(tag: string) {
-    return (contents: Contents<any>) => {
-        const element = document.createElement(tag);
+    return (rawContents: any[]) => {
+        const element = document.createElement(
+            tag === "custom" ? rawContents[0] : tag,
+        );
         const immediateMode = immediate(element);
+        const contents = tag === "custom" ? rawContents.slice(1) : rawContents;
 
         // collect
         for (const content of contents) {
@@ -335,7 +375,7 @@ export function immediate<E extends HTMLElement>(
 
             if (typeof prop === "symbol") return undefined;
 
-            return (...contents: Contents<E>) => {
+            return (...contents: any[]) => {
                 const { element, immediateMode } = makeTagFunc(prop)(contents);
 
                 // render
