@@ -228,8 +228,13 @@ export type Immediate<E extends HTMLElement> = {
      * using `.textContent = ""`.
      */
     clear: () => void;
+
+    /**
+     * Removes this node from the DOM.
+     */
+    remove: () => void;
 } & ImmediateCreate;
-const IM_INTERNAL_FIELDS = ["element", "and", "edit", "clear"];
+const IM_INTERNAL_FIELDS = ["element", "and", "edit", "clear", "remove"];
 
 /**
  * Immediate mode for DOM editing.
@@ -364,6 +369,10 @@ export function immediate<E extends HTMLElement>(
             clear() {
                 if (!this.element) return;
                 this.element.textContent = ""; // clears with a text node
+            },
+
+            remove() {
+                this.element?.remove();
             },
         },
     );
