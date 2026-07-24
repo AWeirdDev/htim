@@ -21,7 +21,7 @@
   "type": "module",
   "exports": {
     "types": "./dist/index.d.mts",
-    "*": "./dist/index.mjs"
+    "node": "./dist/index.mjs"
   },
   "scripts": {
     "build": "tsdown index.ts --dts --out-dir dist",

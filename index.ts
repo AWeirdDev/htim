@@ -184,6 +184,11 @@ type ImmediateCreate = {
         tag: string,
         ...contents: Contents<E>
     ) => Immediate<E>;
+
+    /**
+     * Appends a text node.
+     */
+    _: (...contents: string[]) => void;
 };
 
 export type ImmediateCallback<E extends HTMLElement> = (
@@ -280,6 +285,14 @@ function addAttribute(element: HTMLElement, key: string, value: any) {
 // currying
 function makeTagFunc(tag: string) {
     return (rawContents: any[]) => {
+        if (tag === "_") {
+            // text node
+            const node = document.createTextNode(
+                rawContents.map(String).join(" "),
+            );
+            return { element: node };
+        }
+
         const element = document.createElement(
             tag === "custom" ? rawContents[0] : tag,
         );
@@ -346,8 +359,8 @@ export function immediate<E extends HTMLElement>(
     element: E | null,
 ): Immediate<E> {
     const res = Object.assign(
-        function (this: Immediate<E>) {
-            return this.element;
+        function () {
+            return res.element;
         },
         {
             element,
@@ -430,6 +443,15 @@ export function getDoms(selector: string): Immediate<any>[] {
         Array.from(document.querySelectorAll(selector)) as HTMLElement[]
     ).map(immediate);
 }
+
+/*
+
+    Revision history
+    ----------------
+
+    v0.0.1 (2026-07-15) Initial development and release
+
+*/
 
 /*
 ------------------------------------------------------------------------------
