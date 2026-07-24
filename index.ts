@@ -323,7 +323,7 @@ function immediateEditor(element: HTMLElement): ImmediateEdit {
     const res = {
         anchor,
         tail: anchor,
-        finish: function () {
+        finish() {
             this.anchor.remove();
         },
     };
