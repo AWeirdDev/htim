@@ -48,7 +48,7 @@ section.div((div) => {
 
 It is equivalent to the following HTML code:
 
-```jsx
+```html
 <section>
     <div>
         <h1>Hello, htim</h1>
