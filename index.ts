@@ -593,7 +593,7 @@ export function getDoms(selector: string): Immediate<any>[] {
 
 */
 
-/*
+/**
 ------------------------------------------------------------------------------
 This software is available under 2 licenses -- choose whichever you prefer.
 ------------------------------------------------------------------------------
@@ -645,3 +645,4 @@ OTHER DEALINGS IN THE SOFTWARE.
 For more information, please refer to <https://unlicense.org>
 ------------------------------------------------------------------------------
 */
+export const _copyright = Symbol();
