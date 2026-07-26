@@ -255,6 +255,5 @@ OTHER DEALINGS IN THE SOFTWARE.
 For more information, please refer to <https://unlicense.org>
 ------------------------------------------------------------------------------
 */
-const __htim_copyright = Symbol();
 //#endregion
-export { __htim_copyright, getDom, getDoms, immediate };
+export { getDom, getDoms, immediate };
