@@ -194,6 +194,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 For more information, please refer to <https://unlicense.org>
 ------------------------------------------------------------------------------
 */
-declare const _copyright: unique symbol;
+declare const __htim_copyright: unique symbol;
 //#endregion
-export { Immediate, ImmediateCallback, ImmediateFragment, ImmediateFragmentCallback, _copyright, getDom, getDoms, immediate };
+export { Immediate, ImmediateCallback, ImmediateFragment, ImmediateFragmentCallback, __htim_copyright, getDom, getDoms, immediate };
