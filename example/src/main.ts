@@ -30,6 +30,10 @@ getDom("#app").and((app) => {
             p.code("src/main.ts");
             p._(" and see that hot reloading is not supported");
         });
+
+        div.$((fragment) => {
+            fragment.div("suka!");
+        });
     });
 
     renderCounter(section);

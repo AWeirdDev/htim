@@ -187,14 +187,34 @@ type ImmediateCreate = {
 
     /**
      * Appends a text node.
+     *
+     * This is an alias of `text`.
      */
     _: (...contents: string[]) => void;
+
+    /**
+     * Appends a text node.
+     */
+    text: (...contents: string[]) => void;
+
+    /**
+     * Creates a fragment.
+     *
+     * This is an alias of `fragment`.
+     */
+    $: (...contents: Contents<any>) => Immediate<any>;
+
+    /**
+     * Creates a fragment.
+     *
+     * This doesn't necessarily use `DocumentFragment`.
+     */
+    fragment: (...contents: Contents<any>) => Immediate<any>;
 };
 
 export type ImmediateCallback<E extends HTMLElement> = (
     e: Immediate<E>,
 ) => void;
-export type ImmediateEditCallback = (e: ImmediateEdit) => void;
 
 /**
  * Immediate mode specification.
@@ -202,6 +222,9 @@ export type ImmediateEditCallback = (e: ImmediateEdit) => void;
 export type Immediate<E extends HTMLElement> = {
     /*
      * Get the underlying element, if exists.
+     *
+     * @throws An error will be raised if this is wrapped
+     * around a null or a fragment (`MutableFragment`).
      */
     (): E;
 
@@ -218,13 +241,9 @@ export type Immediate<E extends HTMLElement> = {
     and: (cb: ImmediateCallback<E>) => Immediate<E>;
 
     /**
-     * Edit (in other words, **replace**) this element.
-     * This should generally be a one-time action because then this
-     * element will be replaced away.
-     *
-     * @param cb
+     * Replace this element with something else.
      */
-    edit: (cb: ImmediateEditCallback) => void;
+    replace: (cb: ImmediateFragmentCallback) => void;
 
     /**
      * Clear all nodes within this element.
@@ -239,24 +258,23 @@ export type Immediate<E extends HTMLElement> = {
      */
     remove: () => void;
 } & ImmediateCreate;
-const IM_INTERNAL_FIELDS = ["element", "and", "edit", "clear", "remove"];
+const IMMEDIATE_INTERNAL_FIELDS = [
+    "element",
+    "and",
+    "switch",
+    "clear",
+    "remove",
+];
 
-/**
- * Immediate mode for DOM editing.
- */
-export type ImmediateEdit = {
-    anchor: Node;
-    tail: Node;
-    finish: () => void;
-} & ImmediateCreate;
-const IME_INTERNAL_FIELDS = ["anchor", "tail", "finish"];
-
-// fields to exclude from immediate mode geeneration
+export type ImmediateFragment = {
+    inner: MutableFragment;
+} & Immediate<any>;
+export type ImmediateFragmentCallback = (frag: ImmediateFragment) => void;
+const IMMEDIATE_FRAG_INTERNAL_FIELDS = [...IMMEDIATE_INTERNAL_FIELDS, "inner"];
 
 function addAttribute(element: HTMLElement, key: string, value: any) {
     switch (key) {
         case "style":
-            console.log(value);
             element.style = value.toString();
             break;
 
@@ -285,12 +303,31 @@ function addAttribute(element: HTMLElement, key: string, value: any) {
 // currying
 function makeTagFunc(tag: string) {
     return (rawContents: any[]) => {
-        if (tag === "_") {
-            // text node
+        // text node
+        if (tag === "_" || tag === "text") {
             const node = document.createTextNode(
                 rawContents.map(String).join(" "),
             );
             return { element: node };
+        }
+
+        if (tag === "$" || tag === "fragment") {
+            const start = document.createComment("$");
+            const end = document.createComment("/$");
+            const immediateMode = immediateFragment(start, end);
+
+            // we can directly create a document fragment without needing
+            // MutableFragment here, because we only need to put the two
+            // comments onto the DOM altogether later, which requires a tagless
+            // container
+            //
+            // you can see the implementation of immediate() after calling
+            // makeTagFunc(): it uses <parent>.appendChild(<element>)
+            const fragment = document.createDocumentFragment();
+            fragment.append(start, end);
+            renderContents(fragment, rawContents, immediateMode);
+
+            return { element: fragment, immediateMode };
         }
 
         const element = document.createElement(
@@ -299,49 +336,135 @@ function makeTagFunc(tag: string) {
         const immediateMode = immediate(element);
         const contents = tag === "custom" ? rawContents.slice(1) : rawContents;
 
-        // collect
-        for (const content of contents) {
-            if (typeof content === "string") {
-                element.textContent += content.toString();
-            } else if (typeof content === "function") {
-                content(immediateMode);
-            } else {
-                Object.entries(content).forEach(([key, value]) => {
-                    addAttribute(element, key, value);
-                });
-            }
-        }
+        renderContents(element, contents, immediateMode);
 
         return { element, immediateMode };
     };
 }
 
-function immediateEditor(element: HTMLElement): ImmediateEdit {
-    const anchor = document.createComment("htim");
-    element.replaceWith(anchor);
+function renderContents(
+    node: Node,
+    contents: Contents<any>,
+    immediateMode: Immediate<any>,
+) {
+    // collect
+    for (const content of contents) {
+        if (typeof content === "string") {
+            node.textContent += content.toString();
+        } else if (typeof content === "function") {
+            content(immediateMode);
+        } else {
+            // https://stackoverflow.com/questions/384286
+            //
+            // Essentially you'll need to do:
+            //
+            //   if (node instanceof HTMLElement)
+            //
+            // ...to ignore typescript warnings, but it should only
+            // work on modern browsers, so we'll go through everything
+            // just like forEach(), and the moment it fails, it bails out.
 
-    const res = {
-        anchor,
-        tail: anchor,
-        finish() {
-            this.anchor.remove();
+            Object.entries(content).find(([key, value]) => {
+                try {
+                    addAttribute(node as any, key, value);
+                    //           ^^^^^^^^^^^  we'll do this deliberately
+                } catch {
+                    return true; // bail
+                }
+                return false;
+            });
+        }
+    }
+}
+
+/**
+ * A primitive which implements a fragment which can be put onto the DOM
+ * and still be mutable.
+ *
+ * # Details
+ * This doesn't use `DocumentFragment` because upon putting it
+ * onto the DOM, it actually pours (i.e., drains) everything out of the
+ * fragment container, so to make it truly follow the idea of "immediate,"
+ * we can use comments to keep track of what's going on in the DOM without
+ * storing anything additional here or making any new elements.
+ */
+class MutableFragment {
+    // anchors
+    #start: Node;
+    #end: Node;
+
+    constructor(start: Node, end: Node) {
+        this.#start = start;
+        this.#end = end;
+    }
+
+    /**
+     * Append a node to the fragment body.
+     */
+    appendChild(node: Node) {
+        this.#start.parentNode!.insertBefore(node, this.#end);
+    }
+
+    /**
+     * Clear all nodes in within this fragment.
+     */
+    clear() {
+        let node = this.#start.nextSibling;
+
+        while (node != this.#end && node) {
+            node.remove();
+        }
+    }
+
+    /**
+     * Strips both anchors from the DOM.
+     */
+    removeAnchors() {
+        const parent = this.#start.parentNode!;
+        parent.removeChild(this.#start);
+        parent.removeChild(this.#end);
+    }
+}
+
+function immediateFragment(start: Node, end: Node): ImmediateFragment {
+    const fragment = Object.assign(
+        function () {
+            throw new TypeError("cannot get fragment as an HTMLElement");
         },
-    };
+        {
+            inner: new MutableFragment(start, end),
+            element: null,
 
-    return new Proxy(res, {
+            and(cb: ImmediateCallback<any>) {
+                cb(this as any);
+                return this;
+            },
+
+            replace(cb: ImmediateFragmentCallback) {
+                this.inner.clear();
+                cb(this as any);
+                return this;
+            },
+
+            clear() {
+                this.inner.clear();
+            },
+
+            remove() {
+                this.inner.removeAnchors();
+            },
+        },
+    );
+
+    return new Proxy(fragment, {
         get(target, prop) {
-            if (IME_INTERNAL_FIELDS.includes(prop as any))
-                return Reflect.get(target, prop);
-
             if (typeof prop === "symbol") return undefined;
+            if (IMMEDIATE_FRAG_INTERNAL_FIELDS.includes(prop))
+                return Reflect.get(target, prop);
 
             return (...contents: Contents<any>) => {
                 const { element, immediateMode } = makeTagFunc(prop)(contents);
-
-                const anchor = Reflect.get(target, "anchor");
-                const tail = Reflect.get(target, "tail");
-                anchor.parentNode!.insertBefore(element, tail.nextSibling);
-
+                Reflect.get(target, "inner").appendChild(element);
                 return immediateMode;
             };
         },
@@ -371,12 +494,17 @@ export function immediate<E extends HTMLElement>(
                 return this;
             },
 
-            edit(cb: ImmediateEditCallback) {
+            replace(cb: ImmediateFragmentCallback) {
                 if (!this.element) throw new TypeError("element is null");
 
-                const editor = immediateEditor(this.element);
-                cb(editor);
-                editor.finish();
+                const start = document.createComment("$");
+                const end = document.createComment("/$");
+
+                this.element.replaceWith(end);
+                start.parentNode!.insertBefore(end, start);
+
+                const fragment = immediateFragment(start, end);
+                cb(fragment);
             },
 
             clear() {
@@ -392,10 +520,9 @@ export function immediate<E extends HTMLElement>(
 
     return new Proxy(res, {
         get(target, prop) {
-            if (IM_INTERNAL_FIELDS.includes(prop as any))
-                return Reflect.get(target, prop);
-
             if (typeof prop === "symbol") return undefined;
+            if (IMMEDIATE_INTERNAL_FIELDS.includes(prop))
+                return Reflect.get(target, prop);
 
             return (...contents: any[]) => {
                 const { element, immediateMode } = makeTagFunc(prop)(contents);
@@ -448,6 +575,19 @@ export function getDoms(selector: string): Immediate<any>[] {
 
     Revision history
     ----------------
+
+    v0.0.2 (2026-07-26) Incompatible changes:
+                        - edit() is no longer available; use replace() instead
+
+                        New features:
+                        - MutableFragment introduced to replace existing anchoring
+                          implementation for bulk replacing flatly laid-out elements.
+                        - Use `$` / `fragment` for creating a fragment
+                        - Use `_` / `text` for creating a text node
+
+                        Fixes:
+                        - Fixed an issue which makes `this` undefined in the annonymous
+                          function in immediate()
 
     v0.0.1 (2026-07-15) Initial development and release
 
