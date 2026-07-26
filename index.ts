@@ -164,6 +164,15 @@ type Attributes<T extends HTMLElement> = {
          * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/class
          */
         class?: string | (string | undefined | null)[];
+
+        /**
+         * HTML element dataset.
+         *
+         * This is a wrapper around the `dataset` property.
+         *
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
+         */
+        dataset?: Record<string, string>;
     };
 
 type Contents<E extends HTMLElement> = (
@@ -287,6 +296,17 @@ function addAttribute(element: HTMLElement, key: string, value: any) {
             } else {
                 element.className = value.toString();
             }
+            break;
+
+        case "dataset":
+            if (typeof value !== "object") return;
+
+            // note: <element>.dataset is readonly
+            //       we have to iterate things through
+            Object.entries(value).forEach(([key, value]) => {
+                element.dataset[key] = value!.toString();
+            });
+
             break;
 
         default:

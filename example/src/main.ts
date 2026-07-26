@@ -32,7 +32,7 @@ getDom("#app").and((app) => {
         });
 
         div.$((fragment) => {
-            fragment.div("suka!");
+            fragment.p({ dataset: { name: "charlie kirk" } });
         });
     });
 
