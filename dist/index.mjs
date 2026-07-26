@@ -16,6 +16,12 @@ function addAttribute(element, key, value) {
 			if (Array.isArray(value)) element.className = value.map((item) => item?.trim()).filter((token) => token).join(" ");
 			else element.className = value.toString();
 			break;
+		case "dataset":
+			if (typeof value !== "object") return;
+			Object.entries(value).forEach(([key, value]) => {
+				element.dataset[key] = value.toString();
+			});
+			break;
 		default:
 			if (key.startsWith("on")) {
 				const eventName = key.slice(2);

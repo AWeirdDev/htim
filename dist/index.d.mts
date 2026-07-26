@@ -18,6 +18,14 @@ type Attributes<T extends HTMLElement> = { [K in keyof ElementProps<T> as CamelT
    * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/class
    */
   class?: string | (string | undefined | null)[];
+  /**
+   * HTML element dataset.
+   *
+   * This is a wrapper around the `dataset` property.
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
+   */
+  dataset?: Record<string, string>;
 };
 type Contents<E extends HTMLElement> = (string | Attributes<E> | ImmediateCallback<E>)[];
 type CreateCallback<E extends HTMLElement> = (...contents: Contents<E>) => Immediate<E>;

@@ -604,6 +604,7 @@ export function getDoms(selector: string): Immediate<any>[] {
                           implementation for bulk replacing flatly laid-out elements.
                         - Use `$` / `fragment` for creating a fragment
                         - Use `_` / `text` for creating a text node
+                        - Use `{ dataset: { ... } }` to add `dataset-*` in HTML elements
 
                         Fixes:
                         - Fixed an issue which makes `this` undefined in the annonymous
