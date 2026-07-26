@@ -645,4 +645,3 @@ OTHER DEALINGS IN THE SOFTWARE.
 For more information, please refer to <https://unlicense.org>
 ------------------------------------------------------------------------------
 */
-export const __htim_copyright = Symbol();
