@@ -4,15 +4,36 @@
   "workspaces": {
     "": {
       "name": "htim",
+      "dependencies": {
+        "@htim/core": "workspace:*",
+      },
       "devDependencies": {
-        "@aweirddev/htim": "^0.0.1",
         "@shikijs/vitepress-twoslash": "^4.3.1",
         "@types/bun": "latest",
         "tsdown": "^0.22.8",
         "vitepress": "^1.6.4",
       },
       "peerDependencies": {
-        "typescript": "^5",
+        "typescript": "^5 || ^6 || ^7",
+      },
+    },
+    "packages/core": {
+      "name": "@htim/core",
+      "version": "0.0.3",
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+      "peerDependencies": {
+        "typescript": "^5 || ^6 || ^7",
+      },
+    },
+    "packages/serde": {
+      "name": "@htim/serde",
+      "dependencies": {
+        "@htim/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
       },
     },
   },
@@ -52,8 +73,6 @@
     "@algolia/requester-fetch": ["@algolia/requester-fetch@5.55.2", "", { "dependencies": { "@algolia/client-common": "5.55.2" } }, "sha512-lKZ5uhafMvR7dWCJEyuaeyZitid1I3ICx+k0vGf5x/ktdIQvc7bndCiOPpmIDqUmN26FE3jTehkAzSqee95G2Q=="],
 
     "@algolia/requester-node-http": ["@algolia/requester-node-http@5.55.2", "", { "dependencies": { "@algolia/client-common": "5.55.2" } }, "sha512-Zc90xvKWUvxcNicvvTO9Pr/hT2TAnkixOIzJm/KMj5Ptm2pKjk71ngTsdkbRtJQvhZ2Kr9N1YdIjLrNHB5P2xw=="],
-
-    "@aweirddev/htim": ["@aweirddev/htim@0.0.1", "", { "peerDependencies": { "typescript": "^5" } }, "sha512-W8Vt5w+r+pjWHeLyNjgbAzVruZpS4+TfVAsvOsP8N2Dl6LJ9YvllRHOnRUodJ5TvQ2oFNKXJBwfE2CGjjmBP9Q=="],
 
     "@babel/helper-string-parser": ["@babel/helper-string-parser@7.29.7", "", {}, "sha512-Pb5ijPrZ89GDH8223L4UP8i6QApWxs04RbPQJTeWDV0/keR2E36MeKnyr6LYmUUvqRRI+Iv87SuF1W6ErINzYw=="],
 
@@ -126,6 +145,10 @@
     "@floating-ui/dom": ["@floating-ui/dom@1.1.1", "", { "dependencies": { "@floating-ui/core": "^1.1.0" } }, "sha512-TpIO93+DIujg3g7SykEAGZMDtbJRrmnYRCNYSjJlvIbGhBjRSNTLVbNeDQBrzy9qDgUbiWdc7KA0uZHZ2tJmiw=="],
 
     "@floating-ui/utils": ["@floating-ui/utils@0.2.12", "", {}, "sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww=="],
+
+    "@htim/core": ["@htim/core@workspace:packages/core"],
+
+    "@htim/serde": ["@htim/serde@workspace:packages/serde"],
 
     "@iconify-json/simple-icons": ["@iconify-json/simple-icons@1.2.90", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-zt2o2ZvQpHVvZJARIkZ51RnaHY2oqcPJMvHE+mVnxkSr+c33fnX4gciiXu+wyX5ei+s0qbVX1wD0DWBbaGBYMA=="],
 

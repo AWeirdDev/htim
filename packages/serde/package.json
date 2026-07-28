@@ -1,0 +1,11 @@
+{
+  "name": "@htim/serde",
+  "module": "index.ts",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "type": "module",
+  "dependencies": {
+    "@htim/core": "workspace:*"
+  }
+}

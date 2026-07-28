@@ -1,8 +1,6 @@
 {
   "name": "@htim/core",
-  "type": "module",
-  "private": true,
-  "version": "0.0.3",
+  "version": "0.1.1",
   "description": "HTML immediate mode",
   "repository": {
     "url": "https://github.com/AWeirdDev/htim"
@@ -18,29 +16,24 @@
     "immediate",
     "dom"
   ],
+  "license": "MIT OR UNLICENSED",
+  "module": "index.ts",
+  "type": "module",
   "exports": {
     "types": "./dist/index.d.mts",
     "node": "./dist/index.mjs"
   },
   "scripts": {
-    "build": "echo build",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
-  },
-  "dependencies": {
-    "@htim/core": "workspace:*"
+    "build": "tsdown index.ts --dts --out-dir dist"
   },
   "devDependencies": {
-    "@shikijs/vitepress-twoslash": "^4.3.1",
-    "@types/bun": "latest",
-    "tsdown": "^0.22.8",
-    "vitepress": "^1.6.4"
+    "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5 || ^6 || ^7"
   },
-  "workspaces": [
-    "./packages/**/*"
+  "files": [
+    "./index.ts",
+    "./dist/*"
   ]
 }

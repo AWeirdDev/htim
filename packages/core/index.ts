@@ -1,5 +1,5 @@
 /*
-    htim -- v0.0.1 -- Public Domain - https://github.com/AWeirdDev/htim
+    htim -- v0.1.1 -- Public Domain - https://github.com/AWeirdDev/htim
 
     HTML immediate mode library. The main idea is that there's no need for
     special preprocessing just to render stuff. We can dump everything to
@@ -596,7 +596,10 @@ export function getDoms(selector: string): Immediate<any>[] {
     Revision history
     ----------------
 
-    v0.0.2 (2026-07-26) Incompatible changes:
+    v0.1.1 (2026-07-26) A patch release which fixes a problem with TypeScript peer
+                        dependency.
+
+    v0.1.0 (2026-07-26) Incompatible changes:
                         - edit() is no longer available; use replace() instead
 
                         New features:
