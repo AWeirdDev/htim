@@ -198,7 +198,7 @@ function immediate(element) {
 * @param selector The CSS selector.
 * @returns
 */
-function getDom(selector) {
+function select(selector) {
 	return immediate(document.querySelector(selector));
 }
 /**
@@ -206,7 +206,7 @@ function getDom(selector) {
 *
 * @param selector The CSS selector.
 */
-function getDoms(selector) {
+function selectAll(selector) {
 	return Array.from(document.querySelectorAll(selector)).map(immediate);
 }
 let __htimInternals;
@@ -268,4 +268,4 @@ For more information, please refer to <https://unlicense.org>
 ------------------------------------------------------------------------------
 */
 //#endregion
-export { __htimInternals, getDom, getDoms, immediate };
+export { __htimInternals, immediate, select, selectAll };

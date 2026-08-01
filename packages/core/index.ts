@@ -9,10 +9,10 @@
     no such step as compiling (i.e., transpiling) is needed. Fuck that.
 
     # Example
-    To start, you can use the `getDom()` method to query an element from
+    To start, you can use the `select()` method to query an element from
     the DOM. Then, you can start using the `Immediate` functionalities.
 
-        getDom("#app").and((app) => {
+        select("#app").and((app) => {
             app.h1("Hello, World!");
         })
 
@@ -574,7 +574,7 @@ export function immediate<E extends HTMLElement>(
  * @param selector The CSS selector.
  * @returns
  */
-export function getDom<E extends HTMLElement = any>(
+export function select<E extends HTMLElement = any>(
     selector: string,
 ): Immediate<E> {
     return immediate(document.querySelector(selector));
@@ -585,7 +585,7 @@ export function getDom<E extends HTMLElement = any>(
  *
  * @param selector The CSS selector.
  */
-export function getDoms(selector: string): Immediate<any>[] {
+export function selectAll(selector: string): Immediate<any>[] {
     return (
         Array.from(document.querySelectorAll(selector)) as HTMLElement[]
     ).map(immediate);

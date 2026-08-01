@@ -9,15 +9,18 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
-      "node": "./dist/index.mjs"
+      "node": "./dist/index.mjs",
+      "import": "./dist/index.mjs"
     },
     "./server": {
       "types": "./dist/server.d.mts",
-      "node": "./dist/server.mjs"
+      "node": "./dist/server.mjs",
+      "import": "./dist/server.mjs"
     },
     "./client": {
       "types": "./dist/client.d.mts",
-      "node": "./dist/client.mjs"
+      "node": "./dist/client.mjs",
+      "import": "./dist/client.mjs"
     }
   },
   "devDependencies": {

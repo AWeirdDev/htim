@@ -30,7 +30,11 @@ var ChunksStreamReader = class {
 		return byte;
 	}
 	async readBytes(targetLength) {
-		if (targetLength <= this.#remaining) return this.#chunk.subarray(this.#offset, this.#offset + targetLength);
+		if (targetLength <= this.#remaining) {
+			const subarr = this.#chunk.subarray(this.#offset, this.#offset + targetLength);
+			this.advanceBytes(targetLength);
+			return subarr;
+		}
 		let consumed = 0;
 		const result = new Uint8Array(targetLength);
 		while (consumed < targetLength) {
@@ -51,10 +55,10 @@ var ImmDeserializer = class {
 	constructor(stream) {
 		this.#stream = new ChunksStreamReader(stream);
 	}
-	async readU8() {
+	async readUint8() {
 		return await this.#stream.readByte();
 	}
-	async readU32() {
+	async readUint32() {
 		const arr = await this.#stream.readBytes(__htimSerdeInternals.__sizeUint32);
 		if (!arr) return null;
 		return new DataView(arr.buffer, arr.byteOffset, arr.byteLength).getUint32(0, true);
@@ -70,11 +74,11 @@ async function deserializeImmStreamTo(stream, dest) {
 	const nodes = [dest];
 	const nodeIds = [0];
 	for (;;) {
-		const serdeTag = await de.readU8();
+		const serdeTag = await de.readUint8();
 		if (serdeTag === null) break;
 		switch (serdeTag) {
 			case 2:
-				const elementTagLength = expect("tag length", await de.readU32());
+				const elementTagLength = expect("tag length", await de.readUint32());
 				const elementTag = expect("tag", await de.readString(elementTagLength));
 				const element = document.createElement(elementTag);
 				nodeIds.push(nodes.push(element) - 1);
@@ -89,16 +93,16 @@ async function deserializeImmStreamTo(stream, dest) {
 			case 3:
 				const parent = nodes[expect("a parent", nodeIds[nodeIds.length - 1])];
 				const kvLengths = [];
-				const nAttributes = expect("attributes length", await de.readU32());
-				for (let i = 0; i < nAttributes; i++) kvLengths.push([expect("key length", await de.readU32()), expect("value length", await de.readU32())]);
+				const nAttributes = expect("attributes length", await de.readUint32());
+				for (let i = 0; i < nAttributes; i++) kvLengths.push([expect("key length", await de.readUint32()), expect("value length", await de.readUint32())]);
 				for (const [kLength, vLength] of kvLengths) try {
 					const key = expect("key", await de.readString(kLength));
-					const value = expect("value", await de.readString(kLength));
+					const value = expect("value", await de.readString(vLength));
 					parent.setAttribute(key, value);
 				} catch {}
 				break;
 			case 0:
-				const textLength = expect("text length", await de.readU32());
+				const textLength = expect("text length", await de.readUint32());
 				const textData = expect("text", await de.readString(textLength));
 				const doc = document.createTextNode(textData);
 				nodes.push(doc);
@@ -110,12 +114,11 @@ async function deserializeImmStreamTo(stream, dest) {
 function renderup(nodes, nodeIds) {
 	const parentNodeId = nodeIds.pop();
 	const parentNode = nodes[parentNodeId];
-	let id = nodes.length - 1;
-	while (id > parentNodeId) {
-		const node = nodes.pop();
+	for (let id = parentNodeId + 1; id < nodes.length; id++) {
+		const node = nodes[id];
 		parentNode.appendChild(node);
-		id -= 1;
 	}
+	nodes.splice(parentNodeId + 1, nodes.length);
 }
 function expect(message, item) {
 	if (item === null || typeof item === "undefined") throw new Error(`expected ${message}`);

@@ -22,7 +22,7 @@ function writeContents(sink, contents, immediateMode) {
 			arr.writeUint32(encodedValue.byteLength);
 			arrays.push(encodedKey, encodedValue);
 		}).reduce((i) => i + 1, 0);
-		arr.dataView.setUint32(lengthOffset, attributeLength);
+		arr.dataView.setUint32(lengthOffset, attributeLength, true);
 		sink.pushArrays(...arrays);
 	}
 }

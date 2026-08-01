@@ -143,13 +143,13 @@ declare function immediate<E extends HTMLElement>(element: E | null): Immediate<
  * @param selector The CSS selector.
  * @returns
  */
-declare function getDom<E extends HTMLElement = any>(selector: string): Immediate<E>;
+declare function select<E extends HTMLElement = any>(selector: string): Immediate<E>;
 /**
  * Get multiple DOM elements and put them in immediate mode.
  *
  * @param selector The CSS selector.
  */
-declare function getDoms(selector: string): Immediate<any>[];
+declare function selectAll(selector: string): Immediate<any>[];
 /**
  * Internals, mainly for extension purposes.
  */
@@ -159,4 +159,4 @@ declare namespace __htimInternals {
   const mutableFragment: typeof MutableFragment;
 }
 //#endregion
-export { Contents, Immediate, ImmediateCallback, ImmediateFragment, ImmediateFragmentCallback, __htimInternals, getDom, getDoms, immediate };
+export { Contents, Immediate, ImmediateCallback, ImmediateFragment, ImmediateFragmentCallback, __htimInternals, immediate, select, selectAll };

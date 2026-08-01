@@ -58,7 +58,11 @@ function writeContents(
                 })
                 .reduce((i) => i + 1, 0);
 
-            arr.dataView.setUint32(lengthOffset, attributeLength);
+            arr.dataView.setUint32(
+                lengthOffset,
+                attributeLength,
+                /* littleEndian: */ true,
+            );
             sink.pushArrays(...arrays);
         }
     }

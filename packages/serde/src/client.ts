@@ -42,10 +42,12 @@ class ChunksStreamReader {
 
     async readBytes(targetLength: number): Promise<Uint8Array | null> {
         if (targetLength <= this.#remaining) {
-            return this.#chunk.subarray(
+            const subarr = this.#chunk.subarray(
                 this.#offset,
                 this.#offset + targetLength,
             );
+            this.advanceBytes(targetLength);
+            return subarr;
         }
 
         let consumed = 0;
@@ -75,11 +77,11 @@ class ImmDeserializer {
         this.#stream = new ChunksStreamReader(stream);
     }
 
-    async readU8(): Promise<number | null> {
+    async readUint8(): Promise<number | null> {
         return await this.#stream.readByte();
     }
 
-    async readU32(): Promise<number | null> {
+    async readUint32(): Promise<number | null> {
         const arr = await this.#stream.readBytes(
             __htimSerdeInternals.__sizeUint32,
         );
@@ -106,7 +108,7 @@ export async function deserializeImmStreamTo(
     const nodeIds: number[] = [0];
 
     for (;;) {
-        const serdeTag: SerdeTag | null = await de.readU8();
+        const serdeTag: SerdeTag | null = await de.readUint8();
         if (serdeTag === null) break;
 
         switch (serdeTag) {
@@ -117,13 +119,12 @@ export async function deserializeImmStreamTo(
                 // or content types come first.
                 const elementTagLength = expect(
                     "tag length",
-                    await de.readU32(),
+                    await de.readUint32(),
                 );
                 const elementTag = expect(
                     "tag",
                     await de.readString(elementTagLength),
                 );
-
                 const element = document.createElement(elementTag);
                 nodeIds.push(nodes.push(element) - 1);
                 break;
@@ -144,12 +145,12 @@ export async function deserializeImmStreamTo(
                 const kvLengths: [number, number][] = [];
                 const nAttributes = expect(
                     "attributes length",
-                    await de.readU32(),
+                    await de.readUint32(),
                 );
                 for (let i = 0; i < nAttributes; i++) {
                     kvLengths.push([
-                        expect("key length", await de.readU32()),
-                        expect("value length", await de.readU32()),
+                        expect("key length", await de.readUint32()),
+                        expect("value length", await de.readUint32()),
                     ]);
                 }
 
@@ -158,7 +159,7 @@ export async function deserializeImmStreamTo(
                         const key = expect("key", await de.readString(kLength));
                         const value = expect(
                             "value",
-                            await de.readString(kLength),
+                            await de.readString(vLength),
                         );
                         (parent as unknown as HTMLElement).setAttribute(
                             key,
@@ -173,7 +174,7 @@ export async function deserializeImmStreamTo(
                 break;
 
             case SerdeTag.TEXT:
-                const textLength = expect("text length", await de.readU32());
+                const textLength = expect("text length", await de.readUint32());
                 const textData = expect(
                     "text",
                     await de.readString(textLength),
@@ -189,13 +190,14 @@ export async function deserializeImmStreamTo(
 function renderup(nodes: Node[], nodeIds: number[]): void {
     const parentNodeId = nodeIds.pop()!;
     const parentNode = nodes[parentNodeId]!;
-    let id = nodes.length - 1;
 
-    while (id > parentNodeId) {
-        const node = nodes.pop()!;
+    for (let id = parentNodeId + 1; id < nodes.length; id++) {
+        const node = nodes[id]!;
         parentNode.appendChild(node);
-        id -= 1;
     }
+
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice
+    nodes.splice(parentNodeId + 1, nodes.length);
 }
 
 // utilities
