@@ -1,0 +1,14 @@
+{
+  "name": "--test",
+  "private": true,
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@htim/core": "workspace:*",
+    "@htim/serde": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^8.2.0"
+  }
+}
