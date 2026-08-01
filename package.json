@@ -1,8 +1,8 @@
 {
-  "name": "@htim/core",
+  "name": "--project",
   "type": "module",
   "private": true,
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "HTML immediate mode",
   "repository": {
     "url": "https://github.com/AWeirdDev/htim"
@@ -29,7 +29,8 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
-    "@htim/core": "workspace:*"
+    "@htim/core": "workspace:*",
+    "@htim/serde": "workspace:*"
   },
   "devDependencies": {
     "@shikijs/vitepress-twoslash": "^4.3.1",
@@ -41,6 +42,7 @@
     "typescript": "^5 || ^6 || ^7"
   },
   "workspaces": [
-    "./packages/**/*"
+    "./packages/**/*",
+    "./test/**/*"
   ]
 }
