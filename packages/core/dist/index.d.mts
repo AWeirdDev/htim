@@ -150,5 +150,13 @@ declare function getDom<E extends HTMLElement = any>(selector: string): Immediat
  * @param selector The CSS selector.
  */
 declare function getDoms(selector: string): Immediate<any>[];
+/**
+ * Internals, mainly for extension purposes.
+ */
+declare namespace __htimInternals {
+  const immediateInternalFields: string[];
+  const immediateFragInteralFields: string[];
+  const mutableFragment: typeof MutableFragment;
+}
 //#endregion
-export { Immediate, ImmediateCallback, ImmediateFragment, ImmediateFragmentCallback, getDom, getDoms, immediate };
+export { Contents, Immediate, ImmediateCallback, ImmediateFragment, ImmediateFragmentCallback, __htimInternals, getDom, getDoms, immediate };

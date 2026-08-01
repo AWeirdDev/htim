@@ -175,7 +175,7 @@ type Attributes<T extends HTMLElement> = {
         dataset?: Record<string, string>;
     };
 
-type Contents<E extends HTMLElement> = (
+export type Contents<E extends HTMLElement> = (
     string | Attributes<E> | ImmediateCallback<E>
 )[];
 type CreateCallback<E extends HTMLElement> = (
@@ -589,6 +589,15 @@ export function getDoms(selector: string): Immediate<any>[] {
     return (
         Array.from(document.querySelectorAll(selector)) as HTMLElement[]
     ).map(immediate);
+}
+
+/**
+ * Internals, mainly for extension purposes.
+ */
+export namespace __htimInternals {
+    export const immediateInternalFields = IMMEDIATE_INTERNAL_FIELDS;
+    export const immediateFragInteralFields = IMMEDIATE_FRAG_INTERNAL_FIELDS;
+    export const mutableFragment = MutableFragment;
 }
 
 /*

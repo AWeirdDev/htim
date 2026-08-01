@@ -209,6 +209,12 @@ function getDom(selector) {
 function getDoms(selector) {
 	return Array.from(document.querySelectorAll(selector)).map(immediate);
 }
+let __htimInternals;
+(function(__htimInternals2) {
+	__htimInternals2.immediateInternalFields = IMMEDIATE_INTERNAL_FIELDS;
+	__htimInternals2.immediateFragInteralFields = IMMEDIATE_FRAG_INTERNAL_FIELDS;
+	__htimInternals2.mutableFragment = MutableFragment;
+})(__htimInternals || (__htimInternals = {}));
 /**
 ------------------------------------------------------------------------------
 This software is available under 2 licenses -- choose whichever you prefer.
@@ -262,4 +268,4 @@ For more information, please refer to <https://unlicense.org>
 ------------------------------------------------------------------------------
 */
 //#endregion
-export { getDom, getDoms, immediate };
+export { __htimInternals, getDom, getDoms, immediate };
