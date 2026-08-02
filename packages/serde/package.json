@@ -2,9 +2,9 @@
   "name": "@htim/serde",
   "version": "0.0.1",
   "type": "module",
-  "module": "src/index.ts",
+  "module": "index.ts",
   "scripts": {
-    "build": "tsdown src/index.ts src/client.ts src/server.ts --dts --out-dir dist"
+    "build": "tsdown index.ts --dts --out-dir dist"
   },
   "exports": {
     ".": {
@@ -20,7 +20,7 @@
     "@htim/core": "workspace:*"
   },
   "files": [
-    "./src/*",
+    "./index.ts",
     "./dist/*"
   ]
 }
