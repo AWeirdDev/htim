@@ -22,12 +22,10 @@ function addAttribute(element, key, value) {
 				element.dataset[key] = value.toString();
 			});
 			break;
-		default:
-			if (key.startsWith("on")) {
-				const eventName = key.slice(2);
-				element.addEventListener(eventName, value);
-			} else element.setAttribute(key, value.toString());
-			break;
+		default: if (key.startsWith("on")) {
+			const eventName = key.slice(2);
+			element.addEventListener(eventName, value);
+		} else element.setAttribute(key, value.toString());
 	}
 }
 function makeTagFunc(tag) {
