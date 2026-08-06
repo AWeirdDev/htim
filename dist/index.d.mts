@@ -147,9 +147,27 @@ declare function select<E extends HTMLElement = any>(selector: string): Immediat
 /**
  * Get multiple DOM elements and put them in immediate mode.
  *
+ * The type parameter allows you to cast the result to an
+ * array of immediate modes built on specific types of elements.
+ * For example:
+ *
+ * ```ts
+ * // an array of div elements
+ * selectAll<Immediate<HTMLDivElement>[]>(".some-divs");
+ *
+ * // you're sure what they are: a div and a button.
+ * // though this is generally discouraged, you can never
+ * // be that sure most of the time, it really depends
+ * // on the browser's implementation of querySelectorAll()
+ * selectAll<[
+ *   Immediate<HTMLDivElement>,
+ *   Immediate<HTMLButtonElement>
+ * ]>(".some-class");
+ * ```
+ *
  * @param selector The CSS selector.
  */
-declare function selectAll(selector: string): Immediate<any>[];
+declare function selectAll<const T extends Immediate<any>[]>(selector: string): T;
 /**
  * Internals, mainly for extension purposes.
  */

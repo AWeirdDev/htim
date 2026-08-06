@@ -589,12 +589,32 @@ export function select<E extends HTMLElement = any>(
 /**
  * Get multiple DOM elements and put them in immediate mode.
  *
+ * The type parameter allows you to cast the result to an
+ * array of immediate modes built on specific types of elements.
+ * For example:
+ *
+ * ```ts
+ * // an array of div elements
+ * selectAll<Immediate<HTMLDivElement>[]>(".some-divs");
+ *
+ * // you're sure what they are: a div and a button.
+ * // though this is generally discouraged, you can never
+ * // be that sure most of the time, it really depends
+ * // on the browser's implementation of querySelectorAll()
+ * selectAll<[
+ *   Immediate<HTMLDivElement>,
+ *   Immediate<HTMLButtonElement>
+ * ]>(".some-class");
+ * ```
+ *
  * @param selector The CSS selector.
  */
-export function selectAll(selector: string): Immediate<any>[] {
+export function selectAll<const T extends Immediate<any>[]>(
+    selector: string,
+): T {
     return (
         Array.from(document.querySelectorAll(selector)) as HTMLElement[]
-    ).map(immediate);
+    ).map(immediate) as any;
 }
 
 /**
@@ -610,6 +630,9 @@ export namespace __htimInternals {
 
     Revision history
     ----------------
+
+    v0.3.0 (2026-08-06) What's New:
+                        - Type casting support for selectAll().
 
     v0.2.0 (2026-08-06) Patches:
                         - "replace" not listed as internal fields
@@ -644,7 +667,7 @@ export namespace __htimInternals {
 
 */
 
-/**
+/*
 ------------------------------------------------------------------------------
 This software is available under 2 licenses -- choose whichever you prefer.
 ------------------------------------------------------------------------------
