@@ -1,6 +1,7 @@
 //#region index.ts
 const IMMEDIATE_INTERNAL_FIELDS = [
 	"element",
+	"replace",
 	"and",
 	"switch",
 	"clear",
@@ -93,7 +94,11 @@ var MutableFragment = class {
 	*/
 	clear() {
 		let node = this.#start.nextSibling;
-		while (node != this.#end && node) node.remove();
+		while (node != this.#end && node) {
+			const next = node.nextSibling;
+			node.remove();
+			node = next;
+		}
 	}
 	/**
 	* Strips both anchors from the DOM.
@@ -154,12 +159,13 @@ function immediate(element) {
 			return this;
 		},
 		replace(cb) {
-			if (!this.element) throw new TypeError("element is null");
+			if (!this.element) throw new TypeError("element is null, either it has been replaced or it's not found on the DOM");
 			const start = document.createComment("$");
 			const end = document.createComment("/$");
 			this.element.replaceWith(end);
-			start.parentNode.insertBefore(end, start);
+			end.parentNode.insertBefore(start, end);
 			cb(immediateFragment(start, end));
+			this.element = null;
 		},
 		clear() {
 			if (!this.element) return;
