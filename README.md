@@ -121,6 +121,26 @@ frag.p("More paragraphs!");
 For technical details on how this is implemented, see the function `immediateFragment()` and the class `MutableFragment` in the [source code] for more information.
 
 ### Replacing nodes
+**It is highly recommended** to use a fragment when replacing nodes. This is closer to the actual DOM itself, though it might be a bit uneasy to use at first. I suppose I'll make the API more intuitive any time soon.
+
+```js
+const div = parent.div();
+
+// within in the div, let's have a fragment
+const frag = div.$();
+frag.p("Hello!");
+frag.p("World!");
+
+// replace all
+frag.replace((rpl) => {
+    rpl.p("Replaced with us");
+    rpl.p("No hello!");
+});
+```
+
+Originally, there were two paragraphs `Hello!` and `World!`, but after `.replace()`, the div now only has  `Replaced with us` and `No hello!`.
+
+Fragments can be reused.
 
 ## License
 MIT or [UNLICENSED](https://unlicense.org/), at your option.
