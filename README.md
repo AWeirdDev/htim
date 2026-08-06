@@ -14,9 +14,9 @@ However, using this library comes with a great deal of responsibility. A lot of 
 \* You'll need to write imperative code. See "when & when not to use htim" below for more information.
 
 ```ts
-import { type Immediate, getDom } from "@htim/core";
+import { type Immediate, select } from "@htim/core";
 
-const app = getDom("#app")
+const app = select("#app")
 
 app.h1("My App");
 app.p("This gets added to #app as we write.");
@@ -119,6 +119,8 @@ frag.p("More paragraphs!");
 ```
 
 For technical details on how this is implemented, see the function `immediateFragment()` and the class `MutableFragment` in the [source code] for more information.
+
+### Replacing nodes
 
 ## License
 MIT or [UNLICENSED](https://unlicense.org/), at your option.
