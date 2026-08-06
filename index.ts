@@ -1,5 +1,5 @@
 /*
-    htim -- v0.1.1 -- Public Domain - https://github.com/AWeirdDev/htim
+    htim -- v0.2.0 -- Public Domain - https://github.com/AWeirdDev/htim
 
     HTML immediate mode library. The main idea is that there's no need for
     special preprocessing just to render stuff. We can dump everything to
@@ -12,9 +12,7 @@
     To start, you can use the `select()` method to query an element from
     the DOM. Then, you can start using the `Immediate` functionalities.
 
-        select("#app").and((app) => {
-            app.h1("Hello, World!");
-        })
+        select("#app")
 
     Notice that the function in  `.and()` only runs when that element is
     found.
@@ -269,6 +267,7 @@ export type Immediate<E extends HTMLElement> = {
 } & ImmediateCreate;
 const IMMEDIATE_INTERNAL_FIELDS = [
     "element",
+    "replace",
     "and",
     "switch",
     "clear",
@@ -432,7 +431,9 @@ class MutableFragment {
         let node = this.#start.nextSibling;
 
         while (node != this.#end && node) {
+            const next = node.nextSibling;
             node.remove();
+            node = next;
         }
     }
 
@@ -515,16 +516,21 @@ export function immediate<E extends HTMLElement>(
             },
 
             replace(cb: ImmediateFragmentCallback) {
-                if (!this.element) throw new TypeError("element is null");
+                if (!this.element)
+                    throw new TypeError(
+                        "element is null, either it has been replaced or it's not found on the DOM",
+                    );
 
                 const start = document.createComment("$");
                 const end = document.createComment("/$");
 
                 this.element.replaceWith(end);
-                start.parentNode!.insertBefore(end, start);
+                end.parentNode!.insertBefore(start, end);
 
                 const fragment = immediateFragment(start, end);
                 cb(fragment);
+
+                this.element = null;
             },
 
             clear() {
@@ -604,6 +610,18 @@ export namespace __htimInternals {
 
     Revision history
     ----------------
+
+    v0.2.0 (2026-08-06) Patches:
+                        - "replace" not listed as internal fields
+                        - clear() for MutableFragment looping indefinitely
+                        - replace() in immediate() not setting element to null
+                          after completion, and incorrect .insertBefore() usage
+
+                        What's New:
+                        - Exported `__htimInternals` for internals
+                        - Rename getDom() to select(), getDoms() to selectAll()
+                          for clearer meaning, this is backwards incompatible, BUT
+                          we're still in version zero.
 
     v0.1.1 (2026-07-26) A patch release which fixes a problem with TypeScript peer
                         dependency.

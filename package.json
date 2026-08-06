@@ -1,6 +1,6 @@
 {
   "name": "@htim/core",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "HTML immediate mode",
   "repository": {
     "url": "https://github.com/AWeirdDev/htim"
@@ -20,9 +20,11 @@
   "module": "index.ts",
   "type": "module",
   "exports": {
-    "types": "./dist/index.d.mts",
-    "node": "./dist/index.mjs",
-    "import": "./dist/index.mjs"
+    ".": {
+      "types": "./dist/index.d.mts",
+      "node": "./dist/index.mjs",
+      "import": "./dist/index.mjs"
+    }
   },
   "scripts": {
     "build": "tsdown index.ts --dts --out-dir dist"
