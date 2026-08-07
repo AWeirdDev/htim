@@ -1,5 +1,5 @@
 /*
-    htim -- v0.3.1 -- Public Domain - https://github.com/AWeirdDev/htim
+    htim -- v0.3.2 -- Public Domain - https://github.com/AWeirdDev/htim
 
     HTML immediate mode library. The main idea is that there's no need for
     special preprocessing just to render stuff. We can dump everything to
@@ -269,7 +269,6 @@ const IMMEDIATE_INTERNAL_FIELDS = [
     "element",
     "replace",
     "and",
-    "switch",
     "clear",
     "remove",
 
@@ -651,6 +650,10 @@ export namespace __htimInternals {
 
     Revision history
     ----------------
+
+    v0.3.2 (2026-08-07) Patches:
+                        - Remove "switch" from IMMEDIATE_INTERNAL_FIELDS
+                          as it's already deprecated.
 
     v0.3.1 (2026-08-07) Patches:
                         - Prevent direct making Immediate NEVER resolve

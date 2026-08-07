@@ -27,7 +27,7 @@
     }
   },
   "scripts": {
-    "build": "tsdown index.ts --dts --out-dir dist"
+    "build": "tsdown index.ts --dts --out-dir dist --minify"
   },
   "devDependencies": {
     "@types/bun": "latest",
