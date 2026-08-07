@@ -5,7 +5,8 @@ const IMMEDIATE_INTERNAL_FIELDS = [
 	"and",
 	"switch",
 	"clear",
-	"remove"
+	"remove",
+	"then"
 ];
 const IMMEDIATE_FRAG_INTERNAL_FIELDS = [...IMMEDIATE_INTERNAL_FIELDS, "inner"];
 function addAttribute(element, key, value) {
@@ -115,6 +116,7 @@ function immediateFragment(start, end) {
 	}, {
 		inner: new MutableFragment(start, end),
 		element: null,
+		then: void 0,
 		and(cb) {
 			cb(this);
 			return this;
@@ -153,6 +155,7 @@ function immediate(element) {
 		return res.element;
 	}, {
 		element,
+		then: void 0,
 		and(cb) {
 			if (!this.element) return this;
 			cb(this);

@@ -1,5 +1,5 @@
 /*
-    htim -- v0.2.0 -- Public Domain - https://github.com/AWeirdDev/htim
+    htim -- v0.3.1 -- Public Domain - https://github.com/AWeirdDev/htim
 
     HTML immediate mode library. The main idea is that there's no need for
     special preprocessing just to render stuff. We can dump everything to
@@ -272,6 +272,21 @@ const IMMEDIATE_INTERNAL_FIELDS = [
     "switch",
     "clear",
     "remove",
+
+    "then",
+    // This is to prevent direct await makes this NEVER resolve,
+    // or when this is put inside of an async block and is used
+    // as a return value, it never resolves. From MDN:
+    //
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
+    // > The Promise.resolve() static method "resolves" a given value to a Promise.
+    // > If the value is a promise, that promise is returned; if the value is a thenable,
+    // > Promise.resolve() will call the then() method with two callbacks it prepared;
+    // > otherwise the returned promise will be fulfilled with the value.
+    //
+    //
+    // We have to add a special case here to prevent `then` from returning
+    // a function.
 ];
 
 export type ImmediateFragment = {
@@ -456,6 +471,9 @@ function immediateFragment(start: Node, end: Node): ImmediateFragment {
             inner: new MutableFragment(start, end),
             element: null,
 
+            // See notes for IMMEDIATE_INTERNAL_FIELDS
+            then: undefined,
+
             and(cb: ImmediateCallback<any>) {
                 cb(this as any);
                 return this;
@@ -509,9 +527,12 @@ export function immediate<E extends HTMLElement>(
         {
             element,
 
+            // See notes for IMMEDIATE_INTERNAL_FIELDS
+            then: undefined,
+
             and(cb: ImmediateCallback<E>) {
                 if (!this.element) return this;
-                cb(this as Immediate<E>);
+                cb(this as any);
                 return this;
             },
 
@@ -630,6 +651,10 @@ export namespace __htimInternals {
 
     Revision history
     ----------------
+
+    v0.3.1 (2026-08-07) Patches:
+                        - Prevent direct making Immediate NEVER resolve
+                          when used as a promise resolution value.
 
     v0.3.0 (2026-08-06) What's New:
                         - Type casting support for selectAll().
