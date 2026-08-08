@@ -1,5 +1,5 @@
 /*
-    htim -- v0.3.2 -- Public Domain - https://github.com/AWeirdDev/htim
+    htim -- v0.4.0 -- Public Domain - https://github.com/AWeirdDev/htim
 
     HTML immediate mode library. The main idea is that there's no need for
     special preprocessing just to render stuff. We can dump everything to
@@ -179,7 +179,7 @@ export type Contents<E extends HTMLElement> = (
 type CreateCallback<E extends HTMLElement> = (
     ...contents: Contents<E>
 ) => Immediate<E>;
-type ImmediateCreate = {
+type ImmediateCreate<CurrentElement extends HTMLElement> = {
     [K in keyof HTMLElementTagNameMap]: CreateCallback<
         HTMLElementTagNameMap[K]
     >;
@@ -197,12 +197,12 @@ type ImmediateCreate = {
      *
      * This is an alias of `text`.
      */
-    _: (...contents: string[]) => void;
+    _: (...contents: string[]) => Immediate<CurrentElement>;
 
     /**
      * Appends a text node.
      */
-    text: (...contents: string[]) => void;
+    text: (...contents: string[]) => Immediate<CurrentElement>;
 
     /**
      * Creates a fragment.
@@ -264,7 +264,7 @@ export type Immediate<E extends HTMLElement> = {
      * Removes this node from the DOM.
      */
     remove: () => void;
-} & ImmediateCreate;
+} & ImmediateCreate<E>;
 const IMMEDIATE_INTERNAL_FIELDS = [
     "element",
     "replace",
@@ -341,6 +341,8 @@ function makeTagFunc(tag: string) {
             const node = document.createTextNode(
                 rawContents.map(String).join(" "),
             );
+
+            // immediateMode should be a truthy value
             return { element: node };
         }
 
@@ -360,6 +362,7 @@ function makeTagFunc(tag: string) {
             fragment.append(start, end);
             renderContents(fragment, rawContents, immediateMode);
 
+            // immediateMode should be a truthy value
             return { element: fragment, immediateMode };
         }
 
@@ -503,7 +506,7 @@ function immediateFragment(start: Node, end: Node): ImmediateFragment {
             return (...contents: Contents<any>) => {
                 const { element, immediateMode } = makeTagFunc(prop)(contents);
                 Reflect.get(target, "inner").appendChild(element);
-                return immediateMode;
+                return immediateMode || target;
             };
         },
     }) as any;
@@ -579,7 +582,7 @@ export function immediate<E extends HTMLElement>(
                     throw new TypeError("cannot add child: parent is null");
                 parent.appendChild(element);
 
-                return immediateMode;
+                return immediateMode || target;
             };
         },
     }) as any;
@@ -650,6 +653,10 @@ export namespace __htimInternals {
 
     Revision history
     ----------------
+
+    v0.4.0 (2026-08-08) What's New:
+                        - `text()` and its alias `_()` now returns the
+                          original immediate mode of the parent.
 
     v0.3.2 (2026-08-07) Patches:
                         - Remove "switch" from IMMEDIATE_INTERNAL_FIELDS

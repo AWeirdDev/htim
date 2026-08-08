@@ -29,7 +29,7 @@ type Attributes<T extends HTMLElement> = { [K in keyof ElementProps<T> as CamelT
 };
 type Contents<E extends HTMLElement> = (string | Attributes<E> | ImmediateCallback<E>)[];
 type CreateCallback<E extends HTMLElement> = (...contents: Contents<E>) => Immediate<E>;
-type ImmediateCreate = { [K in keyof HTMLElementTagNameMap]: CreateCallback<HTMLElementTagNameMap[K]>; } & {
+type ImmediateCreate<CurrentElement extends HTMLElement> = { [K in keyof HTMLElementTagNameMap]: CreateCallback<HTMLElementTagNameMap[K]>; } & {
   /**
    * Create custom element.
    */
@@ -39,11 +39,11 @@ type ImmediateCreate = { [K in keyof HTMLElementTagNameMap]: CreateCallback<HTML
    *
    * This is an alias of `text`.
    */
-  _: (...contents: string[]) => void;
+  _: (...contents: string[]) => Immediate<CurrentElement>;
   /**
    * Appends a text node.
    */
-  text: (...contents: string[]) => void;
+  text: (...contents: string[]) => Immediate<CurrentElement>;
   /**
    * Creates a fragment.
    *
@@ -88,7 +88,7 @@ type Immediate<E extends HTMLElement> = {
    * Removes this node from the DOM.
    */
   remove: () => void;
-} & ImmediateCreate;
+} & ImmediateCreate<E>;
 type ImmediateFragment = {
   inner: MutableFragment;
 } & Immediate<any>;
