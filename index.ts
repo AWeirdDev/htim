@@ -1,5 +1,5 @@
 /*
-    htim -- v0.4.0 -- Public Domain - https://github.com/AWeirdDev/htim
+    htim -- v0.5.0 -- Public Domain - https://github.com/AWeirdDev/htim
 
     HTML immediate mode library. The main idea is that there's no need for
     special preprocessing just to render stuff. We can dump everything to
@@ -464,6 +464,20 @@ class MutableFragment {
     }
 }
 
+const IMMEDIATE_FRAG_PROXY_HANDLER = {
+    get(target: any, prop: symbol | string) {
+        if (typeof prop === "symbol") return undefined;
+        if (IMMEDIATE_FRAG_INTERNAL_FIELDS.includes(prop))
+            return Reflect.get(target, prop);
+
+        return (...contents: Contents<any>) => {
+            const { element, immediateMode } = makeTagFunc(prop)(contents);
+            Reflect.get(target, "inner").appendChild(element);
+            return immediateMode || target;
+        };
+    },
+};
+
 function immediateFragment(start: Node, end: Node): ImmediateFragment {
     const fragment = Object.assign(
         function () {
@@ -497,20 +511,28 @@ function immediateFragment(start: Node, end: Node): ImmediateFragment {
         },
     );
 
-    return new Proxy(fragment, {
-        get(target, prop) {
-            if (typeof prop === "symbol") return undefined;
-            if (IMMEDIATE_FRAG_INTERNAL_FIELDS.includes(prop))
-                return Reflect.get(target, prop);
-
-            return (...contents: Contents<any>) => {
-                const { element, immediateMode } = makeTagFunc(prop)(contents);
-                Reflect.get(target, "inner").appendChild(element);
-                return immediateMode || target;
-            };
-        },
-    }) as any;
+    return new Proxy(fragment, IMMEDIATE_FRAG_PROXY_HANDLER) as any;
 }
+
+const IMMEDIATE_PROXY_HANDLER = {
+    get(target: any, prop: symbol | string) {
+        if (typeof prop === "symbol") return undefined;
+        if (IMMEDIATE_INTERNAL_FIELDS.includes(prop))
+            return Reflect.get(target, prop);
+
+        return (...contents: any[]) => {
+            const { element, immediateMode } = makeTagFunc(prop)(contents);
+
+            // render
+            const parent = Reflect.get(target, "element");
+            if (!parent)
+                throw new TypeError("cannot add child: parent is null");
+            parent.appendChild(element);
+
+            return immediateMode || target;
+        };
+    },
+};
 
 /**
  * Apply immediate mode to the provided element.
@@ -567,25 +589,7 @@ export function immediate<E extends HTMLElement>(
         },
     );
 
-    return new Proxy(res, {
-        get(target, prop) {
-            if (typeof prop === "symbol") return undefined;
-            if (IMMEDIATE_INTERNAL_FIELDS.includes(prop))
-                return Reflect.get(target, prop);
-
-            return (...contents: any[]) => {
-                const { element, immediateMode } = makeTagFunc(prop)(contents);
-
-                // render
-                const parent = Reflect.get(target, "element");
-                if (!parent)
-                    throw new TypeError("cannot add child: parent is null");
-                parent.appendChild(element);
-
-                return immediateMode || target;
-            };
-        },
-    }) as any;
+    return new Proxy(res, IMMEDIATE_PROXY_HANDLER) as any;
 }
 
 /**
@@ -653,6 +657,15 @@ export namespace __htimInternals {
 
     Revision history
     ----------------
+
+    v0.5.0 (2026-08-11) What's New:
+                        - A quick performance update. Originally a new handler
+                          (with the exact same code) gets created alongside
+                          a new proxy, which can kill performance when you're
+                          not actually doing anything with the return value.
+                          Now, the handler is only created once (as a constant)
+                          and is passed as reference to potentially speed things
+                          up and reduce memory footprint.
 
     v0.4.0 (2026-08-08) What's New:
                         - `text()` and its alias `_()` now returns the
