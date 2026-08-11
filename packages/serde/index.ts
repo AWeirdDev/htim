@@ -246,6 +246,65 @@ function makeTagFunc(sink: Sink, tag: string) {
     return (...rawContents: any[]) => {};
 }
 
+const SER_IMMEDIATE_PROXY_HANDLER = {
+    get(target: any, prop: symbol | string) {
+        if (typeof prop === "symbol") return undefined;
+        if (__htimInternals.immediateFragInteralFields.includes(prop))
+            return Reflect.get(target, prop);
+
+        return (...rawContents: Contents<any>) => {
+            const tag = prop;
+            const sink = Reflect.get(target, "inner");
+
+            // text node
+            if (tag === "_" || tag === "text") {
+                const encoded = encodeUtf8(
+                    rawContents.map(String).join(" "),
+                );
+
+                const arr = sink.pushOrGetLastDynamicArray();
+                arr.writeUint8(SerdeTag.TEXT);
+                arr.writeUint32(encoded.byteLength);
+
+                sink.pushArrays(encoded);
+                return target;
+            }
+
+            // fragment
+            if (tag === "$" || tag === "fragment") {
+                const arr = sink.pushOrGetLastDynamicArray();
+                arr.writeUint8(SerdeTag.FRAGMENT);
+
+                const immediateMode = serImmediate();
+                writeContents(sink, rawContents, immediateMode);
+
+                sink.pushOrGetLastDynamicArray().writeUint8(
+                    SerdeTag.RENDERUP,
+                );
+                return immediateMode;
+            }
+
+            const elementTag =
+                tag === "custom" ? rawContents[0]!.toString() : tag;
+            const encodedTag = encodeUtf8(elementTag);
+
+            const arr = sink.pushOrGetLastDynamicArray();
+            arr.writeUint8(SerdeTag.ELEMENT);
+            arr.writeUint32(encodedTag.byteLength);
+            sink.pushArrays(encodedTag);
+
+            const contents =
+                tag === "custom" ? rawContents.slice(1) : rawContents;
+
+            const immediateMode = serImmediate();
+            writeContents(sink, contents, immediateMode);
+
+            sink.pushOrGetLastDynamicArray().writeUint8(SerdeTag.RENDERUP);
+            return immediateMode;
+        };
+    },
+};
+
 /**
  * Create serializer immediate mode. It behaves nearly identical to
  * `immediate()` from `@htim/core`, but with some features disabled,
@@ -283,64 +342,7 @@ export function serImmediate(): SerImmediate<any> {
         },
     );
 
-    return new Proxy(res, {
-        get(target, prop) {
-            if (typeof prop === "symbol") return undefined;
-            if (__htimInternals.immediateFragInteralFields.includes(prop))
-                return Reflect.get(target, prop);
-
-            return (...rawContents: Contents<any>) => {
-                const tag = prop;
-                const sink = Reflect.get(target, "inner");
-
-                // text node
-                if (tag === "_" || tag === "text") {
-                    const encoded = encodeUtf8(
-                        rawContents.map(String).join(" "),
-                    );
-
-                    const arr = sink.pushOrGetLastDynamicArray();
-                    arr.writeUint8(SerdeTag.TEXT);
-                    arr.writeUint32(encoded.byteLength);
-
-                    sink.pushArrays(encoded);
-                    return target;
-                }
-
-                // fragment
-                if (tag === "$" || tag === "fragment") {
-                    const arr = sink.pushOrGetLastDynamicArray();
-                    arr.writeUint8(SerdeTag.FRAGMENT);
-
-                    const immediateMode = serImmediate();
-                    writeContents(sink, rawContents, immediateMode);
-
-                    sink.pushOrGetLastDynamicArray().writeUint8(
-                        SerdeTag.RENDERUP,
-                    );
-                    return immediateMode;
-                }
-
-                const elementTag =
-                    tag === "custom" ? rawContents[0]!.toString() : tag;
-                const encodedTag = encodeUtf8(elementTag);
-
-                const arr = sink.pushOrGetLastDynamicArray();
-                arr.writeUint8(SerdeTag.ELEMENT);
-                arr.writeUint32(encodedTag.byteLength);
-                sink.pushArrays(encodedTag);
-
-                const contents =
-                    tag === "custom" ? rawContents.slice(1) : rawContents;
-
-                const immediateMode = serImmediate();
-                writeContents(sink, contents, immediateMode);
-
-                sink.pushOrGetLastDynamicArray().writeUint8(SerdeTag.RENDERUP);
-                return immediateMode;
-            };
-        },
-    }) as any;
+    return new Proxy(res, SER_IMMEDIATE_PROXY_HANDLER) as any;
 }
 
 function encodeUtf8(content: string): Uint8Array {

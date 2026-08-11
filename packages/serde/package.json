@@ -1,6 +1,6 @@
 {
   "name": "@htim/serde",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "HTML immediate de(serialization) mode",
   "repository": {
     "url": "https://github.com/AWeirdDev/htim"
@@ -29,6 +29,9 @@
   },
   "scripts": {
     "build": "tsdown index.ts --dts --out-dir dist --minify"
+  },
+  "dependencies": {
+    "@htim/core": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "latest",
