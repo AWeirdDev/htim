@@ -1,17 +1,16 @@
-import { select, type Immediate } from "../../";
+import "./style.css";
 
-select("#app").and((div: Immediate<HTMLDivElement>) => {
-    let count = 0;
+import { select } from "../../";
+import { css } from "@emotion/css";
 
-    const frag = div.$();
-    frag.p("Hello, World!");
-
-    div.button("Switch!", {
-        onclick: () =>
-            frag.replace((rpl) => {
-                rpl.p("More stuff!");
-                rpl.p(count.toString());
-                count++;
-            }),
+select<HTMLDivElement>("#app").and((app) => {
+    const ref = app.div("16:09", {
+        class: css({
+            position: "absolute",
+            fontFamily: "'Inter Tight', sans-serif",
+            fontWeight: 800,
+            fontSize: "120px",
+        }),
     });
+    ref.div("yo");
 });

@@ -1,33 +1,9 @@
 {
-  "name": "@htim/core",
-  "version": "0.5.0",
-  "description": "HTML immediate mode",
-  "repository": {
-    "url": "https://github.com/AWeirdDev/htim"
-  },
-  "author": {
-    "name": "AWeirdDev",
-    "email": "awdjared@gmail.com",
-    "url": "https://github.com/AWeirdDev"
-  },
-  "readme": "README.md",
-  "keywords": [
-    "html",
-    "immediate",
-    "dom"
-  ],
-  "license": "MIT OR UNLICENSED",
-  "module": "index.ts",
-  "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.mts",
-      "node": "./dist/index.mjs",
-      "import": "./dist/index.mjs"
-    }
-  },
-  "scripts": {
-    "build": "tsdown index.ts --dts --out-dir dist --minify"
+  "name": "htim",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@htim/core": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -36,8 +12,7 @@
   "peerDependencies": {
     "typescript": "^5 || ^6 || ^7"
   },
-  "files": [
-    "./index.ts",
-    "./dist/*"
+  "workspaces": [
+    "packages/**/*"
   ]
 }
