@@ -333,50 +333,48 @@ function addAttribute(element: HTMLElement, key: string, value: any) {
     }
 }
 
-// currying
-function makeTagFunc(tag: string) {
-    return (rawContents: any[]) => {
-        // text node
-        if (tag === "_" || tag === "text") {
-            const node = document.createTextNode(
-                rawContents.map(String).join(" "),
-            );
-
-            // immediateMode should be a truthy value
-            return { element: node };
-        }
-
-        if (tag === "$" || tag === "fragment") {
-            const start = document.createComment("$");
-            const end = document.createComment("/$");
-            const immediateMode = immediateFragment(start, end);
-
-            // we can directly create a document fragment without needing
-            // MutableFragment here, because we only need to put the two
-            // comments onto the DOM altogether later, which requires a tagless
-            // container
-            //
-            // you can see the implementation of immediate() after calling
-            // makeTagFunc(): it uses <parent>.appendChild(<element>)
-            const fragment = document.createDocumentFragment();
-            fragment.append(start, end);
-            renderContents(fragment, rawContents, immediateMode);
-
-            // immediateMode should be a truthy value
-            return { element: fragment, immediateMode };
-        }
-
-        const element = document.createElement(
-            tag === "custom" ? rawContents[0] : tag,
+const IMMEDIATE_TAG_HANDLER = (tag: string, rawContents: any[]) => {
+    // text node
+    if (tag === "_" || tag === "text") {
+        const node = document.createTextNode(
+            rawContents.map(String).join(" "),
         );
-        const immediateMode = immediate(element);
-        const contents = tag === "custom" ? rawContents.slice(1) : rawContents;
 
-        renderContents(element, contents, immediateMode);
+        // immediateMode should be a truthy value
+        return { element: node };
+    }
 
-        return { element, immediateMode };
-    };
-}
+    if (tag === "$" || tag === "fragment") {
+        const start = document.createComment("$");
+        const end = document.createComment("/$");
+        const immediateMode = immediateFragment(start, end);
+
+        // we can directly create a document fragment without needing
+        // MutableFragment here, because we only need to put the two
+        // comments onto the DOM altogether later, which requires a tagless
+        // container
+        //
+        // you can see the implementation of immediate() after calling
+        // makeTagFunc(): it uses <parent>.appendChild(<element>)
+        const fragment = document.createDocumentFragment();
+        fragment.append(start, end);
+        renderContents(fragment, rawContents, immediateMode);
+
+        // immediateMode should be a truthy value
+        return { element: fragment, immediateMode };
+    }
+
+    const element = document.createElement(
+        tag === "custom" ? rawContents[0] : tag,
+    );
+    const immediateMode = immediate(element);
+    const contents = tag === "custom" ? rawContents.slice(1) : rawContents;
+
+    renderContents(element, contents, immediateMode);
+
+    return { element, immediateMode };
+};
+
 
 function renderContents(
     node: Node,
@@ -471,7 +469,7 @@ const IMMEDIATE_FRAG_PROXY_HANDLER = {
             return Reflect.get(target, prop);
 
         return (...contents: Contents<any>) => {
-            const { element, immediateMode } = makeTagFunc(prop)(contents);
+            const { element, immediateMode } = IMMEDIATE_TAG_HANDLER(prop, contents);
             Reflect.get(target, "inner").appendChild(element);
             return immediateMode || target;
         };
@@ -486,9 +484,6 @@ function immediateFragment(start: Node, end: Node): ImmediateFragment {
         {
             inner: new MutableFragment(start, end),
             element: null,
-
-            // See notes for IMMEDIATE_INTERNAL_FIELDS
-            then: undefined,
 
             and(cb: ImmediateCallback<any>) {
                 cb(this as any);
@@ -521,7 +516,7 @@ const IMMEDIATE_PROXY_HANDLER = {
             return Reflect.get(target, prop);
 
         return (...contents: any[]) => {
-            const { element, immediateMode } = makeTagFunc(prop)(contents);
+            const { element, immediateMode } = IMMEDIATE_TAG_HANDLER(prop, contents);
 
             // render
             const parent = Reflect.get(target, "element");
@@ -550,9 +545,6 @@ export function immediate<E extends HTMLElement>(
         },
         {
             element,
-
-            // See notes for IMMEDIATE_INTERNAL_FIELDS
-            then: undefined,
 
             and(cb: ImmediateCallback<E>) {
                 if (!this.element) return this;

@@ -1,16 +1,8 @@
 import "./style.css";
 
-import { select } from "../../";
-import { css } from "@emotion/css";
+import { select } from "@htim/core";
 
-select<HTMLDivElement>("#app").and((app) => {
-    const ref = app.div("16:09", {
-        class: css({
-            position: "absolute",
-            fontFamily: "'Inter Tight', sans-serif",
-            fontWeight: 800,
-            fontSize: "120px",
-        }),
-    });
-    ref.div("yo");
+select("#app").and((app) => {
+    const d = app.div("SUKA BLYATT! ");
+    d.text("aboba");
 });

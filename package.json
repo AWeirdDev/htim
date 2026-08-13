@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@htim/core": "workspace:*"
+    "@htim/core": "workspace:*",
+    "@htim/serde": "workspace:*",
+    "@htim/context": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -13,6 +15,7 @@
     "typescript": "^5 || ^6 || ^7"
   },
   "workspaces": [
-    "packages/**/*"
+    "packages/**/*",
+    "example/"
   ]
 }
