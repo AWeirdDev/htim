@@ -10,8 +10,7 @@
   },
   "dependencies": {
     "@emotion/css": "^11.13.5",
-    "@htim/core": "workspace:*",
-    "@htim/context": "workspace:*"
+    "@htim/core": "workspace:*"
   },
   "devDependencies": {
     "typescript": "~6.0.2",

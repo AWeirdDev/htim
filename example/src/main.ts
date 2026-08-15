@@ -2,7 +2,7 @@ import "./style.css";
 
 import { select } from "@htim/core";
 
-select("#app").and((app) => {
-    const d = app.div("SUKA BLYATT! ");
-    d.text("aboba");
-});
+const app = select("#app");
+
+const d = app.div("aboba");
+d.div("suka blyatt!");

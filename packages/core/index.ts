@@ -1,5 +1,5 @@
 /*
-    htim -- v0.5.0 -- Public Domain - https://github.com/AWeirdDev/htim
+    htim -- v0.6.0 -- Public Domain -- https://github.com/AWeirdDev/htim
 
     HTML immediate mode library. The main idea is that there's no need for
     special preprocessing just to render stuff. We can dump everything to
@@ -7,251 +7,14 @@
 
     This library is deliberately close to the native JavaScript API, and
     no such step as compiling (i.e., transpiling) is needed. Fuck that.
-
-    # Example
-    To start, you can use the `select()` method to query an element from
-    the DOM. Then, you can start using the `Immediate` functionalities.
-
-        select("#app")
-
-    Notice that the function in  `.and()` only runs when that element is
-    found.
  */
 
-type EventHandlers<T> = {
-    [K in keyof GlobalEventHandlersEventMap as `on${K}`]?: (
-        this: T,
-        event: GlobalEventHandlersEventMap[K],
-    ) => any;
-};
-
-type ReadonlyDOMProps =
-    | "offsetWidth"
-    | "offsetHeight"
-    | "offsetTop"
-    | "offsetLeft"
-    | "clientWidth"
-    | "clientHeight"
-    | "clientTop"
-    | "clientLeft"
-    | "scrollWidth"
-    | "scrollHeight"
-    | "nodeName"
-    | "nodeType"
-    | "nodeValue"
-    | "parentNode"
-    | "childNodes"
-    | "firstChild"
-    | "lastChild"
-    | "previousSibling"
-    | "nextSibling"
-    | "attributes"
-    | "ownerDocument"
-    | "namespaceURI"
-    | "tagName"
-    | "innerHTML"
-    | "outerHTML"
-    | "textContent"
-    | "innerText"
-    | "outerText";
-
-type CamelToKebab<S extends string> = S extends `${infer A}${infer B}`
-    ? B extends Uncapitalize<B>
-        ? `${Lowercase<A>}${CamelToKebab<B>}`
-        : `${Lowercase<A>}-${CamelToKebab<B>}`
-    : S;
-
-type ExcludedHTMLProps =
-    | "children"
-    | "style"
-    | "className"
-    | "classList"
-    | "ELEMENT_NODE"
-    | "ATTRIBUTE_NODE"
-    | "TEXT_NODE"
-    | "CDATA_SECTION_NODE"
-    | "ENTITY_REFERENCE_NODE"
-    | "ENTITY_NODE"
-    | "PROCESSING_INSTRUCTION_NODE"
-    | "COMMENT_NODE"
-    | "DOCUMENT_NODE"
-    | "DOCUMENT_TYPE_NODE"
-    | "DOCUMENT_FRAGMENT_NODE"
-    | "NOTATION_NODE"
-    | "DOCUMENT_POSITION_DISCONNECTED"
-    | "DOCUMENT_POSITION_PRECEDING"
-    | "DOCUMENT_POSITION_FOLLOWING"
-    | "DOCUMENT_POSITION_CONTAINS"
-    | "DOCUMENT_POSITION_CONTAINED_BY"
-    | "DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC"
-    | "FILTER_ACCEPT"
-    | "FILTER_REJECT"
-    | "FILTER_SKIP"
-    | "SHOW_ALL"
-    | "SHOW_ELEMENT"
-    | "SHOW_ATTRIBUTE"
-    | "SHOW_TEXT"
-    | "SHOW_CDATA_SECTION"
-    | "SHOW_ENTITY_REFERENCE"
-    | "SHOW_ENTITY"
-    | "SHOW_PROCESSING_INSTRUCTION"
-    | "SHOW_COMMENT"
-    | "SHOW_DOCUMENT"
-    | "SHOW_DOCUMENT_TYPE"
-    | "SHOW_DOCUMENT_FRAGMENT"
-    | "SHOW_NOTATION"
-    | "NONE"
-    | "CAPTURING_PHASE"
-    | "AT_TARGET"
-    | "BUBBLING_PHASE"
-    | "DOM_KEY_LOCATION_STANDARD"
-    | "DOM_KEY_LOCATION_LEFT"
-    | "DOM_KEY_LOCATION_RIGHT"
-    | "DOM_KEY_LOCATION_NUMPAD"
-    | "BUTTON_LEFT"
-    | "BUTTON_MIDDLE"
-    | "BUTTON_RIGHT"
-    | "BUTTON_BACK"
-    | "BUTTON_FORWARD"
-    | "STYLE_RULE"
-    | "IMPORT_RULE"
-    | "MEDIA_RULE"
-    | "FONT_FACE_RULE"
-    | "PAGE_RULE"
-    | "KEYFRAMES_RULE"
-    | "KEYFRAME_RULE"
-    | "NAMESPACE_RULE"
-    | "COUNTER_STYLE_RULE"
-    | "SUPPORTS_RULE"
-    | "DOCUMENT_RULE"
-    | "START_TO_START"
-    | "START_TO_END"
-    | "END_TO_END"
-    | "END_TO_START"
-    | "UNSENT"
-    | "OPENED"
-    | "HEADERS_RECEIVED"
-    | "LOADING"
-    | "DONE"
-    | ReadonlyDOMProps
-    | keyof EventHandlers<any>;
-
-type ExtractProps<T> = {
-    [K in keyof T]: T[K] extends Function ? never : K;
-}[keyof T];
-
-type ElementProps<T extends HTMLElement> = Partial<
-    Omit<Pick<T, ExtractProps<T>>, ExcludedHTMLProps>
->;
-
-type Attributes<T extends HTMLElement> = {
-    [
-        K in keyof ElementProps<T> as CamelToKebab<K & string>
-    ]: ElementProps<T>[K];
-} & EventHandlers<T> & {
-        /**
-         * CSS styles.
-         *
-         * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/style
-         */
-        style?: string;
-
-        /**
-         * HTML classes.
-         *
-         * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/class
-         */
-        class?: string | (string | undefined | null)[];
-
-        /**
-         * HTML element dataset.
-         *
-         * This is a wrapper around the `dataset` property.
-         *
-         * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
-         */
-        dataset?: Record<string, string>;
-    };
-
-export type Contents<E extends HTMLElement> = (
-    string | Attributes<E> | ImmediateCallback<E>
-)[];
-type CreateCallback<E extends HTMLElement> = (
-    ...contents: Contents<E>
-) => Immediate<E>;
-type ImmediateCreate<CurrentElement extends HTMLElement> = {
-    [K in keyof HTMLElementTagNameMap]: CreateCallback<
-        HTMLElementTagNameMap[K]
-    >;
-} & {
-    /**
-     * Create custom element.
-     */
-    custom: <E extends HTMLElement>(
-        tag: string,
-        ...contents: Contents<E>
-    ) => Immediate<E>;
-
-    /**
-     * Appends a text node.
-     *
-     * This is an alias of `text`.
-     */
-    _: (...contents: string[]) => Immediate<CurrentElement>;
-
-    /**
-     * Appends a text node.
-     */
-    text: (...contents: string[]) => Immediate<CurrentElement>;
-
-    /**
-     * Creates a fragment.
-     *
-     * This is an alias of `fragment`.
-     */
-    $: (...contents: Contents<any>) => Immediate<any>;
-
-    /**
-     * Creates a fragment.
-     *
-     * This doesn't necessarily use `DocumentFragment`.
-     */
-    fragment: (...contents: Contents<any>) => Immediate<any>;
-};
-
-export type ImmediateCallback<E extends HTMLElement> = (
-    e: Immediate<E>,
-) => void;
+import { type Contents, type Immediate, IMMEDIATE_INTERNAL_FIELDS, createImmediateFactory } from "@htim/primitives";
 
 /**
- * Immediate mode specification.
+ * Utilities for immediate mode on the DOM.
  */
-export type Immediate<E extends HTMLElement> = {
-    /*
-     * Get the underlying element, if exists.
-     *
-     * @throws An error will be raised if this is wrapped
-     * around a null or a fragment (`MutableFragment`).
-     */
-    (): E;
-
-    /**
-     * The underlying element. It may be `null`.
-     */
-    element: E | null;
-
-    /**
-     * Run the callback when the element exists.
-     *
-     * @param cb The callback to run.
-     */
-    and: (cb: ImmediateCallback<E>) => Immediate<E>;
-
-    /**
-     * Replace this element with something else.
-     */
-    replace: (cb: ImmediateFragmentCallback) => void;
-
+export interface DomImmediateUtils {
     /**
      * Clear all nodes within this element.
      *
@@ -264,35 +27,20 @@ export type Immediate<E extends HTMLElement> = {
      * Removes this node from the DOM.
      */
     remove: () => void;
-} & ImmediateCreate<E>;
-const IMMEDIATE_INTERNAL_FIELDS = [
-    "element",
-    "replace",
+}
+
+type DomContents = Contents<any, DomImmediateUtils>;
+type DomImmediate<E extends HTMLElement> = Immediate<E, DomImmediateUtils>;
+
+const DOM_IMMEDIATE_INTERNAL_FIELDS = [
+    ...IMMEDIATE_INTERNAL_FIELDS,
     "and",
     "clear",
     "remove",
-
-    "then",
-    // This is to prevent direct await makes this NEVER resolve,
-    // or when this is put inside of an async block and is used
-    // as a return value, it never resolves. From MDN:
-    //
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
-    // > The Promise.resolve() static method "resolves" a given value to a Promise.
-    // > If the value is a promise, that promise is returned; if the value is a thenable,
-    // > Promise.resolve() will call the then() method with two callbacks it prepared;
-    // > otherwise the returned promise will be fulfilled with the value.
-    //
-    //
-    // We have to add a special case here to prevent `then` from returning
-    // a function.
 ];
 
-export type ImmediateFragment = {
-    inner: MutableFragment;
-} & Immediate<any>;
+export type ImmediateFragment = Immediate<MutableFragment, DomImmediateUtils>;
 export type ImmediateFragmentCallback = (frag: ImmediateFragment) => void;
-const IMMEDIATE_FRAG_INTERNAL_FIELDS = [...IMMEDIATE_INTERNAL_FIELDS, "inner"];
 
 function addAttribute(element: HTMLElement, key: string, value: any) {
     switch (key) {
@@ -333,53 +81,10 @@ function addAttribute(element: HTMLElement, key: string, value: any) {
     }
 }
 
-const IMMEDIATE_TAG_HANDLER = (tag: string, rawContents: any[]) => {
-    // text node
-    if (tag === "_" || tag === "text") {
-        const node = document.createTextNode(
-            rawContents.map(String).join(" "),
-        );
-
-        // immediateMode should be a truthy value
-        return { element: node };
-    }
-
-    if (tag === "$" || tag === "fragment") {
-        const start = document.createComment("$");
-        const end = document.createComment("/$");
-        const immediateMode = immediateFragment(start, end);
-
-        // we can directly create a document fragment without needing
-        // MutableFragment here, because we only need to put the two
-        // comments onto the DOM altogether later, which requires a tagless
-        // container
-        //
-        // you can see the implementation of immediate() after calling
-        // makeTagFunc(): it uses <parent>.appendChild(<element>)
-        const fragment = document.createDocumentFragment();
-        fragment.append(start, end);
-        renderContents(fragment, rawContents, immediateMode);
-
-        // immediateMode should be a truthy value
-        return { element: fragment, immediateMode };
-    }
-
-    const element = document.createElement(
-        tag === "custom" ? rawContents[0] : tag,
-    );
-    const immediateMode = immediate(element);
-    const contents = tag === "custom" ? rawContents.slice(1) : rawContents;
-
-    renderContents(element, contents, immediateMode);
-
-    return { element, immediateMode };
-};
-
-
 function renderContents(
     node: Node,
-    contents: Contents<any>,
-    immediateMode: Immediate<any>,
+    contents: DomContents,
+    immediateMode: DomImmediate<any>,
 ) {
     // collect
     for (const content of contents) {
@@ -462,147 +167,118 @@ class MutableFragment {
     }
 }
 
-const IMMEDIATE_FRAG_PROXY_HANDLER = {
-    get(target: any, prop: symbol | string) {
-        if (typeof prop === "symbol") return undefined;
-        if (IMMEDIATE_FRAG_INTERNAL_FIELDS.includes(prop))
-            return Reflect.get(target, prop);
+const DOM_IMMEDIATE_TAG_HANDLER = (tag: string, rawContents: any[]) => {
+    // text node
+    if (tag === "_" || tag === "text") {
+        const node = document.createTextNode(
+            rawContents.map(String).join(" "),
+        );
 
-        return (...contents: Contents<any>) => {
-            const { element, immediateMode } = IMMEDIATE_TAG_HANDLER(prop, contents);
-            Reflect.get(target, "inner").appendChild(element);
-            return immediateMode || target;
-        };
-    },
+        return { element: node };
+    }
+
+    if (tag === "$" || tag === "fragment") {
+        const start = document.createComment("$");
+        const end = document.createComment("/$");
+        const immediateMode = immediateFragment(start, end);
+
+        // we can directly create a document fragment without needing
+        // MutableFragment here, because we only need to put the two
+        // comments onto the DOM altogether later, which requires a tagless
+        // container
+        //
+        // you can see the implementation of immediate() after calling
+        // makeTagFunc(): it uses <parent>.appendChild(<element>)
+        const fragment = document.createDocumentFragment();
+        fragment.append(start, end);
+        renderContents(fragment, rawContents, immediateMode);
+
+        return { element: fragment, immediateMode };
+    }
+
+    const element = document.createElement(
+        tag === "custom" ? rawContents[0] : tag,
+    );
+    const immediateMode = immediate(element);
+    const contents = tag === "custom" ? rawContents.slice(1) : rawContents;
+
+    renderContents(element, contents, immediateMode);
+
+    return { element, immediateMode };
 };
+
+const DOM_IMMEDIATE_HANDLER = (target: any, tag: string, contents: any[]) => {
+    const { element, immediateMode } = DOM_IMMEDIATE_TAG_HANDLER(tag, contents);
+
+    // render
+    const parent = target.inner;
+    if (!parent)
+        throw new TypeError("cannot add child: parent is null");
+    parent.appendChild(element);
+
+    return immediateMode || target;
+};
+
+const DOM_IMMEDIATE_FRAG_UTILS = {
+    clear() {
+        ((this as any).inner as MutableFragment).clear()
+    },
+
+    remove() {
+        this.clear();
+        ((this as any).inner as MutableFragment).removeAnchors();
+    }
+} satisfies DomImmediateUtils;
+
+const DOM_IMMEDIATE_FRAG_FACTORY = createImmediateFactory(DOM_IMMEDIATE_HANDLER, DOM_IMMEDIATE_FRAG_UTILS);
 
 function immediateFragment(start: Node, end: Node): ImmediateFragment {
-    const fragment = Object.assign(
-        function () {
-            throw new TypeError("cannot get fragment as an HTMLElement");
-        },
-        {
-            inner: new MutableFragment(start, end),
-            element: null,
-
-            and(cb: ImmediateCallback<any>) {
-                cb(this as any);
-                return this;
-            },
-
-            replace(cb: ImmediateFragmentCallback) {
-                this.inner.clear();
-                cb(this as any);
-                return this;
-            },
-
-            clear() {
-                this.inner.clear();
-            },
-
-            remove() {
-                this.inner.removeAnchors();
-            },
-        },
-    );
-
-    return new Proxy(fragment, IMMEDIATE_FRAG_PROXY_HANDLER) as any;
+    const mf = new MutableFragment(start, end);
+    return DOM_IMMEDIATE_FRAG_FACTORY(mf);
 }
 
-const IMMEDIATE_PROXY_HANDLER = {
-    get(target: any, prop: symbol | string) {
-        if (typeof prop === "symbol") return undefined;
-        if (IMMEDIATE_INTERNAL_FIELDS.includes(prop))
-            return Reflect.get(target, prop);
-
-        return (...contents: any[]) => {
-            const { element, immediateMode } = IMMEDIATE_TAG_HANDLER(prop, contents);
-
-            // render
-            const parent = Reflect.get(target, "element");
-            if (!parent)
-                throw new TypeError("cannot add child: parent is null");
-            parent.appendChild(element);
-
-            return immediateMode || target;
-        };
+const DOM_IMMEDIATE_UTILS = {
+    clear() {
+        if (!(this as any).inner) return;
+        (this as any).inner.textContent = ""; // clears with a text node
     },
-};
+
+    remove() {
+        (this as any).inner?.remove();
+    },
+} satisfies DomImmediateUtils;
+
+const DOM_IMMEDIATE_FACTORY = createImmediateFactory<any, DomImmediateUtils>(DOM_IMMEDIATE_HANDLER, DOM_IMMEDIATE_UTILS);
 
 /**
  * Apply immediate mode to the provided element.
  * The type parameter `E` allows you to specify what type
  * of element it is. For example, `HTMLDivElement`.
  *
- * @param element The target element.
+ * @param inner The target element.
  */
-export function immediate<E extends HTMLElement>(
-    element: E | null,
-): Immediate<E> {
-    const res = Object.assign(
-        function () {
-            return res.element;
-        },
-        {
-            element,
-
-            and(cb: ImmediateCallback<E>) {
-                if (!this.element) return this;
-                cb(this as any);
-                return this;
-            },
-
-            replace(cb: ImmediateFragmentCallback) {
-                if (!this.element)
-                    throw new TypeError(
-                        "element is null, either it has been replaced or it's not found on the DOM",
-                    );
-
-                const start = document.createComment("$");
-                const end = document.createComment("/$");
-
-                this.element.replaceWith(end);
-                end.parentNode!.insertBefore(start, end);
-
-                const fragment = immediateFragment(start, end);
-                cb(fragment);
-
-                this.element = null;
-            },
-
-            clear() {
-                if (!this.element) return;
-                this.element.textContent = ""; // clears with a text node
-            },
-
-            remove() {
-                this.element?.remove();
-            },
-        },
-    );
-
-    return new Proxy(res, IMMEDIATE_PROXY_HANDLER) as any;
+export function immediate<I extends HTMLElement>(
+    inner: I,
+): Immediate<I, DomImmediateUtils> {
+    return DOM_IMMEDIATE_FACTORY(inner);
 }
 
 /**
  * Get a DOM element and apply immediate mode to it.
  *
- * This function does **NOT** raise.
- *
- * You can check if it's successful by checking the `element` field
- * in the `Immediate` object, but it's generally discouraged. You
- * can either use `.and(...)` to setup a callback if the element
- * is found, or just don't use this function and use
- * `immediate(element)` to apply immediate mode from an element
- * directly instead.
+ * This function raises when it's not found.
  *
  * @param selector The CSS selector.
  * @returns
  */
-export function select<E extends HTMLElement = any>(
+export function select<E extends HTMLElement>(
     selector: string,
-): Immediate<E> {
-    return immediate(document.querySelector(selector));
+): Immediate<E, DomImmediateUtils> {
+    const ele = document.querySelector(selector);
+    if (ele === null) throw new Error(
+        `cant find any element matching ${selector}`
+    )
+    return immediate<E>(ele as E);
 }
 
 /**
@@ -635,77 +311,6 @@ export function selectAll<const T extends Immediate<any>[]>(
         Array.from(document.querySelectorAll(selector)) as HTMLElement[]
     ).map(immediate) as any;
 }
-
-/**
- * Internals, mainly for extension purposes.
- */
-export namespace __htimInternals {
-    export const immediateInternalFields = IMMEDIATE_INTERNAL_FIELDS;
-    export const immediateFragInteralFields = IMMEDIATE_FRAG_INTERNAL_FIELDS;
-    export const mutableFragment = MutableFragment;
-}
-
-/*
-
-    Revision history
-    ----------------
-
-    v0.5.0 (2026-08-11) What's New:
-                        - A quick performance update. Originally a new handler
-                          (with the exact same code) gets created alongside
-                          a new proxy, which can kill performance when you're
-                          not actually doing anything with the return value.
-                          Now, the handler is only created once (as a constant)
-                          and is passed as reference to potentially speed things
-                          up and reduce memory footprint.
-
-    v0.4.0 (2026-08-08) What's New:
-                        - `text()` and its alias `_()` now returns the
-                          original immediate mode of the parent.
-
-    v0.3.2 (2026-08-07) Patches:
-                        - Remove "switch" from IMMEDIATE_INTERNAL_FIELDS
-                          as it's already deprecated.
-
-    v0.3.1 (2026-08-07) Patches:
-                        - Prevent direct making Immediate NEVER resolve
-                          when used as a promise resolution value.
-
-    v0.3.0 (2026-08-06) What's New:
-                        - Type casting support for selectAll().
-
-    v0.2.0 (2026-08-06) Patches:
-                        - "replace" not listed as internal fields
-                        - clear() for MutableFragment looping indefinitely
-                        - replace() in immediate() not setting element to null
-                          after completion, and incorrect .insertBefore() usage
-
-                        What's New:
-                        - Exported `__htimInternals` for internals
-                        - Rename getDom() to select(), getDoms() to selectAll()
-                          for clearer meaning, this is backwards incompatible, BUT
-                          we're still in version zero.
-
-    v0.1.1 (2026-07-26) A patch release which fixes a problem with TypeScript peer
-                        dependency.
-
-    v0.1.0 (2026-07-26) Incompatible changes:
-                        - edit() is no longer available; use replace() instead
-
-                        New features:
-                        - MutableFragment introduced to replace existing anchoring
-                          implementation for bulk replacing flatly laid-out elements.
-                        - Use `$` / `fragment` for creating a fragment
-                        - Use `_` / `text` for creating a text node
-                        - Use `{ dataset: { ... } }` to add `dataset-*` in HTML elements
-
-                        Fixes:
-                        - Fixed an issue which makes `this` undefined in the annonymous
-                          function in immediate()
-
-    v0.0.1 (2026-07-15) Initial development and release
-
-*/
 
 /*
 ------------------------------------------------------------------------------

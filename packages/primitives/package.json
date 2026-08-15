@@ -1,7 +1,7 @@
 {
-  "name": "@htim/core",
-  "version": "0.6.0",
-  "description": "HTML immediate mode",
+  "name": "@htim/primitives",
+  "version": "0.0.1",
+  "description": "Primitives for the htim ecosystem",
   "repository": {
     "url": "https://github.com/AWeirdDev/htim"
   },
@@ -11,11 +11,7 @@
     "url": "https://github.com/AWeirdDev"
   },
   "readme": "README.md",
-  "keywords": [
-    "html",
-    "immediate",
-    "dom"
-  ],
+  "keywords": [],
   "license": "MIT OR UNLICENSED",
   "module": "index.ts",
   "type": "module",
@@ -23,15 +19,11 @@
     ".": {
       "types": "./dist/index.d.mts",
       "node": "./dist/index.mjs",
-      "import": "./dist/index.mjs",
-      "development": "./index.ts"
+      "import": "./dist/index.mjs"
     }
   },
   "scripts": {
     "build": "tsdown index.ts --dts --out-dir dist --minify"
-  },
-  "dependencies": {
-    "@htim/primitives": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "latest",

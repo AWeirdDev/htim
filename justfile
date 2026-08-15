@@ -3,3 +3,6 @@ build-core:
 
 build-serde:
     cd packages/serde; bun run build;
+
+build-primitives:
+    cd packages/primitives; bun run build;

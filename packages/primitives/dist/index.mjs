@@ -1,0 +1,1 @@
+const e=[`inner`,`then`];function t(t,n){let r={get(n,r){if(typeof r!=`symbol`)return e.includes(r)?Reflect.get(n,r):(...e)=>t(n,r,e)}};return e=>{let t=function(){return t.inner};return t.inner=e,new Proxy(t,r)}}export{e as IMMEDIATE_INTERNAL_FIELDS,t as createImmediateFactory};
