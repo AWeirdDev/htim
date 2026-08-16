@@ -277,10 +277,12 @@ export function createImmediateFactory<
     handler: (target: I, tag: string, contents: any[]) => Immediate<any, any>,
     utils: U,
 ): (inner: T) => I {
+    const utilKeys = Object.keys(utils);
     const proxyHandler = {
         get(target: any, prop: symbol | string) {
             if (typeof prop === "symbol") return undefined;
             if (IMMEDIATE_INTERNAL_FIELDS.includes(prop)) return Reflect.get(target, prop);
+            if (utilKeys.includes(prop)) return utils[prop];
             return (...contents: any[]) => handler(target, prop, contents);
         },
     };
