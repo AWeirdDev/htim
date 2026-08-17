@@ -9,7 +9,7 @@
     no such step as compiling (i.e., transpiling) is needed. Fuck that.
  */
 
-import { type Contents, type Immediate, IMMEDIATE_INTERNAL_FIELDS, createImmediateFactory } from "@htim/primitives";
+import { type ContentsBuilder, type Immediate, IMMEDIATE_INTERNAL_FIELDS, createImmediateFactory } from "@htim/primitives";
 
 /**
  * Utilities for immediate mode on the DOM.
@@ -29,7 +29,7 @@ export interface DomImmediateUtils {
     remove: () => void;
 }
 
-export type DomContents = Contents<any, DomImmediateUtils>;
+export type DomContents = ContentsBuilder<any, DomImmediateUtils>;
 export type DomImmediate<E extends HTMLElement> = Immediate<E, DomImmediateUtils>;
 
 const DOM_IMMEDIATE_INTERNAL_FIELDS = [

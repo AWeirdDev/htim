@@ -1,4 +1,4 @@
-import { Contents, Immediate } from "@htim/primitives";
+import { ContentsBuilder, Immediate } from "@htim/primitives";
 //#region index.d.ts
 /**
  * Utilities for immediate mode on the DOM.
@@ -16,7 +16,7 @@ interface DomImmediateUtils {
    */
   remove: () => void;
 }
-type DomContents = Contents<any, DomImmediateUtils>;
+type DomContents = ContentsBuilder<any, DomImmediateUtils>;
 type DomImmediate<E extends HTMLElement> = Immediate<E, DomImmediateUtils>;
 type ImmediateFragment = Immediate<MutableFragment, DomImmediateUtils>;
 type ImmediateFragmentCallback = (frag: ImmediateFragment) => void;
