@@ -164,14 +164,24 @@ type Attributes<T extends HTMLElement> = {
         dataset?: Record<string, string>;
     };
 
-export type Contents<I, U extends Record<string, any>> = (
+/**
+ * Arguments which can be passed to when invoking HTML node creation,
+ * such as `.div()`.
+ *
+ * It's absolutely worth noting that at this stage, **nothing is put onto
+ * the DOM yet**, therefore some DOM operations (such as finding the
+ * parent) targeting the current node being built is subject to fail.
+ * Thus, the name "builder" is solely here to remind you that it's still
+ * in the building stage, so it's not on the DOM just yet.
+ */
+export type ContentsBuilder<I, U extends Record<string, any>> = (
     | (I extends infer P extends HTMLElement ? Attributes<P> : never)
     | string
     | ImmediateCallback<I, U>
 )[];
 
 type CreateCallback<E extends HTMLElement, U extends Record<string, any>> = (
-    ...contents: Contents<E, U>
+    ...contents: ContentsBuilder<E, U>
 ) => Immediate<E, U>;
 
 type ImmediateCreate<CurrentT, U extends Record<string, any>> = {
@@ -187,7 +197,7 @@ type ImmediateCreate<CurrentT, U extends Record<string, any>> = {
      */
     custom: <E extends HTMLElement>(
         tag: string,
-        ...contents: Contents<E, U>
+        ...contents: ContentsBuilder<E, U>
     ) => Immediate<E, U>;
 
     /**
@@ -207,14 +217,14 @@ type ImmediateCreate<CurrentT, U extends Record<string, any>> = {
      *
      * This is an alias of `fragment`.
      */
-    $: (...contents: Contents<any, U>) => Immediate<any, U>;
+    $: (...contents: ContentsBuilder<any, U>) => Immediate<any, U>;
 
     /**
      * Creates a fragment.
      *
      * This doesn't necessarily use `DocumentFragment`.
      */
-    fragment: (...contents: Contents<any, U>) => Immediate<any, U>;
+    fragment: (...contents: ContentsBuilder<any, U>) => Immediate<any, U>;
 };
 
 /**
@@ -232,8 +242,7 @@ export type Immediate<T, Utils extends Record<string, any> = {}> = {
      * The underlying element or any data.
      */
     inner: T;
-} & Utils &
-    ImmediateCreate<T, Utils>;
+} & Utils & ImmediateCreate<T, Utils>;
 
 export type ImmediateCallback<I, U extends Record<string, any>> = (
     e: Immediate<I, U>,
