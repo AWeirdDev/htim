@@ -37,15 +37,15 @@ type Attributes<T extends HTMLElement> = { [K in keyof ElementProps<T> as CamelT
  * Thus, the name "builder" is solely here to remind you that it's still
  * in the building stage, so it's not on the DOM just yet.
  */
-type BuilderContents<I, U extends Record<string, any>> = ((I extends (infer P extends HTMLElement) ? Attributes<P> : never) | string | ImmediateCallback<I, U>)[];
-type CreateCallback<E extends HTMLElement, U extends Record<string, any>> = (...contents: BuilderContents<E, U>) => Immediate<E, U>;
+type ContentsBuilder<I, U extends Record<string, any>> = ((I extends (infer P extends HTMLElement) ? Attributes<P> : never) | string | ImmediateCallback<I, U>)[];
+type CreateCallback<E extends HTMLElement, U extends Record<string, any>> = (...contents: ContentsBuilder<E, U>) => Immediate<E, U>;
 type ImmediateCreate<CurrentT, U extends Record<string, any>> = { [K in keyof HTMLElementTagNameMap]: CreateCallback<HTMLElementTagNameMap[K], U>; } & {
   /**
    * Create an element with a custom tag.
    *
    * @param tag The tag of the element.
    */
-  custom: <E extends HTMLElement>(tag: string, ...contents: BuilderContents<E, U>) => Immediate<E, U>;
+  custom: <E extends HTMLElement>(tag: string, ...contents: ContentsBuilder<E, U>) => Immediate<E, U>;
   /**
    * Appends a text node.
    *
@@ -61,13 +61,13 @@ type ImmediateCreate<CurrentT, U extends Record<string, any>> = { [K in keyof HT
    *
    * This is an alias of `fragment`.
    */
-  $: (...contents: BuilderContents<any, U>) => Immediate<any, U>;
+  $: (...contents: ContentsBuilder<any, U>) => Immediate<any, U>;
   /**
    * Creates a fragment.
    *
    * This doesn't necessarily use `DocumentFragment`.
    */
-  fragment: (...contents: BuilderContents<any, U>) => Immediate<any, U>;
+  fragment: (...contents: ContentsBuilder<any, U>) => Immediate<any, U>;
 };
 /**
  * Immediate mode specification.
@@ -94,4 +94,4 @@ declare const IMMEDIATE_INTERNAL_FIELDS: readonly string[];
  */
 declare function createImmediateFactory<T, U extends Record<string, any> = {}, I = Immediate<T, U>>(handler: (target: I, tag: string, contents: any[]) => Immediate<any, any>, utils: U): (inner: T) => I;
 //#endregion
-export { BuilderContents, IMMEDIATE_INTERNAL_FIELDS, Immediate, ImmediateCallback, createImmediateFactory };
+export { ContentsBuilder, IMMEDIATE_INTERNAL_FIELDS, Immediate, ImmediateCallback, createImmediateFactory };
