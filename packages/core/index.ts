@@ -29,8 +29,8 @@ export interface DomImmediateUtils {
     remove: () => void;
 }
 
-type DomContents = Contents<any, DomImmediateUtils>;
-type DomImmediate<E extends HTMLElement> = Immediate<E, DomImmediateUtils>;
+export type DomContents = Contents<any, DomImmediateUtils>;
+export type DomImmediate<E extends HTMLElement> = Immediate<E, DomImmediateUtils>;
 
 const DOM_IMMEDIATE_INTERNAL_FIELDS = [
     ...IMMEDIATE_INTERNAL_FIELDS,

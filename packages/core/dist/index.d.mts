@@ -1,4 +1,4 @@
-import { Immediate } from "@htim/primitives";
+import { Contents, Immediate } from "@htim/primitives";
 //#region index.d.ts
 /**
  * Utilities for immediate mode on the DOM.
@@ -16,6 +16,8 @@ interface DomImmediateUtils {
    */
   remove: () => void;
 }
+type DomContents = Contents<any, DomImmediateUtils>;
+type DomImmediate<E extends HTMLElement> = Immediate<E, DomImmediateUtils>;
 type ImmediateFragment = Immediate<MutableFragment, DomImmediateUtils>;
 type ImmediateFragmentCallback = (frag: ImmediateFragment) => void;
 /**
@@ -87,4 +89,4 @@ declare function select<E extends HTMLElement>(selector: string): Immediate<E, D
  */
 declare function selectAll<const T extends Immediate<any>[]>(selector: string): T;
 //#endregion
-export { DomImmediateUtils, ImmediateFragment, ImmediateFragmentCallback, immediate, select, selectAll };
+export { DomContents, DomImmediate, DomImmediateUtils, ImmediateFragment, ImmediateFragmentCallback, immediate, select, selectAll };

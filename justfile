@@ -6,3 +6,6 @@ build-serde:
 
 build-primitives:
     cd packages/primitives; bun run build;
+
+build-context:
+    cd packages/context; bun run build;
