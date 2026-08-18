@@ -39,35 +39,35 @@ type Attributes<T extends HTMLElement> = { [K in keyof ElementProps<T> as CamelT
  */
 type ContentsBuilder<I, U extends Record<string, any>> = ((I extends (infer P extends HTMLElement) ? Attributes<P> : never) | string | ImmediateCallback<I, U>)[];
 type CreateCallback<E extends HTMLElement, U extends Record<string, any>> = (...contents: ContentsBuilder<E, U>) => Immediate<E, U>;
-type ImmediateCreate<CurrentT, U extends Record<string, any>> = { [K in keyof HTMLElementTagNameMap]: CreateCallback<HTMLElementTagNameMap[K], U>; } & {
+type ImmediateCreate<Utils extends Record<string, any>> = { [K in keyof HTMLElementTagNameMap]: CreateCallback<HTMLElementTagNameMap[K], Utils>; } & {
   /**
    * Create an element with a custom tag.
    *
    * @param tag The tag of the element.
    */
-  custom: <E extends HTMLElement>(tag: string, ...contents: ContentsBuilder<E, U>) => Immediate<E, U>;
+  custom: <E extends HTMLElement>(tag: string, ...contents: ContentsBuilder<E, Utils>) => Immediate<E, Utils>;
   /**
    * Appends a text node.
    *
    * This is an alias of `text`.
    */
-  _: (...contents: string[]) => Immediate<CurrentT>;
+  _: (...contents: string[]) => Immediate<Text, Utils>;
   /**
    * Appends a text node.
    */
-  text: (...contents: string[]) => Immediate<CurrentT>;
+  text: (...contents: string[]) => Immediate<Text, Utils>;
   /**
    * Creates a fragment.
    *
    * This is an alias of `fragment`.
    */
-  $: (...contents: ContentsBuilder<any, U>) => Immediate<any, U>;
+  $: (...contents: ContentsBuilder<any, Utils>) => Immediate<any, Utils>;
   /**
    * Creates a fragment.
    *
    * This doesn't necessarily use `DocumentFragment`.
    */
-  fragment: (...contents: ContentsBuilder<any, U>) => Immediate<any, U>;
+  fragment: (...contents: ContentsBuilder<any, Utils>) => Immediate<any, Utils>;
 };
 /**
  * Immediate mode specification.
@@ -78,7 +78,7 @@ type Immediate<T, Utils extends Record<string, any> = {}> = {
    * The underlying element or any data.
    */
   inner: T;
-} & Utils & ImmediateCreate<T, Utils>;
+} & Utils & ImmediateCreate<Utils>;
 type ImmediateCallback<I, U extends Record<string, any>> = (e: Immediate<I, U>) => void;
 declare const IMMEDIATE_INTERNAL_FIELDS: readonly string[];
 /**
