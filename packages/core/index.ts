@@ -31,10 +31,20 @@ export interface DomImmediateUtils {
      * Removes this node from the DOM.
      */
     remove: () => void;
+
+    /**
+     * Replaces the text of the current node with a new one.
+     *
+     * If there are multiple nodes inside the current node (as children),
+     * they will all be replaced with a singular text node.
+     *
+     * @param newText The text to substitute for the old one.
+     */
+    replaceText: (newText: string) => void;
 }
 
 export type DomContents = ContentsBuilder<any, DomImmediateUtils>;
-export type DomImmediate<E extends HTMLElement> = Immediate<E, DomImmediateUtils>;
+export type DomImmediate<N extends Node> = Immediate<N, DomImmediateUtils>;
 
 export type ImmediateFragment = Immediate<MutableFragment, DomImmediateUtils>;
 export type ImmediateFragmentCallback = (frag: ImmediateFragment) => void;
@@ -170,8 +180,9 @@ const DOM_IMMEDIATE_TAG_HANDLER = (tag: string, rawContents: any[]) => {
         const node = document.createTextNode(
             rawContents.map(String).join(" "),
         );
+        const immediateMode = immediate(node as any);
 
-        return { element: node };
+        return { element: node, immediateMode };
     }
 
     if (tag === "$" || tag === "fragment") {
@@ -224,7 +235,13 @@ const DOM_IMMEDIATE_FRAG_UTILS = {
     remove() {
         this.clear();
         ((this as any).inner as MutableFragment).removeAnchors();
-    }
+    },
+
+    replaceText(newText: string) {
+        const inner = (this as any).inner as MutableFragment;
+        inner.clear();
+        inner.appendChild(document.createTextNode(newText));
+    },
 } satisfies DomImmediateUtils;
 
 const DOM_IMMEDIATE_FRAG_FACTORY = createImmediateFactory(DOM_IMMEDIATE_HANDLER, DOM_IMMEDIATE_FRAG_UTILS);
@@ -243,6 +260,10 @@ const DOM_IMMEDIATE_UTILS = {
     remove() {
         (this as any).inner?.remove();
     },
+
+    replaceText(newText: string) {
+        ((this as any).inner as Node).textContent = newText;
+    }
 } satisfies DomImmediateUtils;
 
 const DOM_IMMEDIATE_FACTORY = createImmediateFactory<any, DomImmediateUtils>(DOM_IMMEDIATE_HANDLER, DOM_IMMEDIATE_UTILS);
@@ -254,9 +275,9 @@ const DOM_IMMEDIATE_FACTORY = createImmediateFactory<any, DomImmediateUtils>(DOM
  *
  * @param inner The target element.
  */
-export function immediate<I extends HTMLElement>(
+export function immediate<I extends Node>(
     inner: I,
-): Immediate<I, DomImmediateUtils> {
+): DomImmediate<I> {
     return DOM_IMMEDIATE_FACTORY(inner);
 }
 
@@ -270,7 +291,7 @@ export function immediate<I extends HTMLElement>(
  */
 export function select<E extends HTMLElement>(
     selector: string,
-): Immediate<E, DomImmediateUtils> {
+): DomImmediate<E> {
     const ele = document.querySelector(selector);
     if (ele === null) throw new Error(
         `cant find any element matching ${selector}`
@@ -301,7 +322,7 @@ export function select<E extends HTMLElement>(
  *
  * @param selector The CSS selector.
  */
-export function selectAll<const T extends Immediate<any>[]>(
+export function selectAll<const T extends DomImmediate<any>[]>(
     selector: string,
 ): T {
     return (

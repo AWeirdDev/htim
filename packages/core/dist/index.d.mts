@@ -15,9 +15,18 @@ interface DomImmediateUtils {
    * Removes this node from the DOM.
    */
   remove: () => void;
+  /**
+   * Replaces the text of the current node with a new one.
+   *
+   * If there are multiple nodes inside the current node (as children),
+   * they will all be replaced with a singular text node.
+   *
+   * @param newText The text to substitute for the old one.
+   */
+  replaceText: (newText: string) => void;
 }
 type DomContents = ContentsBuilder<any, DomImmediateUtils>;
-type DomImmediate<E extends HTMLElement> = Immediate<E, DomImmediateUtils>;
+type DomImmediate<N extends Node> = Immediate<N, DomImmediateUtils>;
 type ImmediateFragment = Immediate<MutableFragment, DomImmediateUtils>;
 type ImmediateFragmentCallback = (frag: ImmediateFragment) => void;
 /**
@@ -54,7 +63,7 @@ declare class MutableFragment {
  *
  * @param inner The target element.
  */
-declare function immediate<I extends HTMLElement>(inner: I): Immediate<I, DomImmediateUtils>;
+declare function immediate<I extends Node>(inner: I): DomImmediate<I>;
 /**
  * Get a DOM element and apply immediate mode to it.
  *
@@ -63,7 +72,7 @@ declare function immediate<I extends HTMLElement>(inner: I): Immediate<I, DomImm
  * @param selector The CSS selector.
  * @returns
  */
-declare function select<E extends HTMLElement>(selector: string): Immediate<E, DomImmediateUtils>;
+declare function select<E extends HTMLElement>(selector: string): DomImmediate<E>;
 /**
  * Get multiple DOM elements and put them in immediate mode.
  *
@@ -87,6 +96,6 @@ declare function select<E extends HTMLElement>(selector: string): Immediate<E, D
  *
  * @param selector The CSS selector.
  */
-declare function selectAll<const T extends Immediate<any>[]>(selector: string): T;
+declare function selectAll<const T extends DomImmediate<any>[]>(selector: string): T;
 //#endregion
 export { DomContents, DomImmediate, DomImmediateUtils, ImmediateFragment, ImmediateFragmentCallback, immediate, select, selectAll };
