@@ -133,8 +133,6 @@ export function getContexts<
             result[targets.get(entry.token)!] = entry.value;
             targets.delete(entry.token);
         }
-
-        console.log(parent);
         parent = parent.parentElement;
     } while (parent && targets.size);
 
