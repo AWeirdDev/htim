@@ -35,6 +35,17 @@ declare function bindContext<I extends Immediate<HTMLElement, Record<string, any
  */
 declare function getContexts<C extends ContextToken<string, any>, M extends Record<string, C>>(immediateMode: WithContext<Immediate<HTMLElement, Record<string, any>>, C>, mapping: M): { [K in keyof M]: M[K] extends ContextToken<string, infer T> ? T : never; };
 declare function getContext<C extends ContextToken<string, any>>(immediateMode: WithContext<Immediate<HTMLElement, Record<string, any>>, C>, token: C): C extends ContextToken<string, infer T> ? T : never;
+type LossyBindContextFn = <I extends Immediate<HTMLElement, any>, T>(immediateMode: I, filledContext: Filled<ContextToken<string, T>, T>) => I;
+/**
+ * Binds context to an immediate mode with type information lost.
+ *
+ * This is especially useful when your language server is getting
+ * slow and cannot handle the type system htim provides.
+ *
+ * At runtime, this behaves exactly the same as `bindContext()`,
+ * there is no additional overhead using this.
+ */
+declare const lossyBindContext: LossyBindContextFn;
 type TryGetContextsFn = <M extends Record<string, ContextToken<string, any>>>(immediateMode: Immediate<HTMLElement, Record<string, any>>, mapping: M) => { [K in keyof M]: M[K] extends ContextToken<string, infer T> ? T : never; };
 /**
  * Get multiple contexts with no type guarantee.
@@ -56,4 +67,4 @@ type TryGetContextFn = <C extends ContextToken<string, any>>(immediateMode: Imme
  */
 declare const tryGetContext: TryGetContextFn;
 //#endregion
-export { ContextToken, WithContext, bindContext, createContext, getContext, getContexts, tryGetContext, tryGetContexts };
+export { ContextToken, WithContext, bindContext, createContext, getContext, getContexts, lossyBindContext, tryGetContext, tryGetContexts };

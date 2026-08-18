@@ -18,6 +18,7 @@
     will potentially be slower due to the type mappings going on.
  */
 
+import { select } from "@htim/core";
 import type { Immediate } from "@htim/primitives";
 
 declare const __contextType: unique symbol;
@@ -150,6 +151,21 @@ export function getContext<C extends ContextToken<string, any>>(
 ): C extends ContextToken<string, infer T> ? T : never {
     return getContexts(immediateMode, { ctx: token }).ctx;
 }
+
+type LossyBindContextFn = <I extends Immediate<HTMLElement, any>, T>(
+    immediateMode: I, filledContext: Filled<ContextToken<string, T>, T>
+) => I;
+
+/**
+ * Binds context to an immediate mode with type information lost.
+ *
+ * This is especially useful when your language server is getting
+ * slow and cannot handle the type system htim provides.
+ *
+ * At runtime, this behaves exactly the same as `bindContext()`,
+ * there is no additional overhead using this.
+ */
+export const lossyBindContext: LossyBindContextFn = bindContext as any;
 
 type TryGetContextsFn = <
     M extends Record<string, ContextToken<string, any>>,
