@@ -1,12 +1,12 @@
 import "./style.css";
 
 import { select } from "@htim/core";
-import { bindContext, createContext, getContext } from "@htim/context";
+import { lossyBindContext, createContext, tryGetContext } from "@htim/context";
 
 const Theme = createContext<"theme", "dark" | "light">();
 
-const app = bindContext(select("#app"), Theme("light"));
-const div = app.div("hello, world!");
+const app = lossyBindContext(select("#app"), Theme("dark"));
+const div = app.button("CLICK MEH");
 
-const theme = getContext(div, Theme);
-div._(" theme is", theme);
+const theme = tryGetContext(div, Theme);
+console.log(theme);
