@@ -18,7 +18,6 @@
     will potentially be slower due to the type mappings going on.
  */
 
-import { select } from "@htim/core";
 import type { Immediate } from "@htim/primitives";
 
 declare const __contextType: unique symbol;
