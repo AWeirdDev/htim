@@ -12,11 +12,10 @@ type Filled<C extends ContextToken<string, T>, T> = C & {
   value: T;
 };
 declare const __contextTokens: unique symbol;
-type WrapReturn<R, C extends ContextToken<any, any>> = R extends Immediate<infer T2, infer U2> ? WithContext<Immediate<T2, U2>, C> : R;
-type WrapReturns<F, C extends ContextToken<any, any>> = F extends ((...args: infer A extends readonly unknown[]) => infer R) ? (...contents: A) => WrapReturn<R, C> : F;
+type WrapReturn<F, C extends ContextToken<any, any>> = F extends ((...args: infer A) => Immediate<infer T2, infer U2>) ? (...contents: A) => WithContext<Immediate<T2, U2>, C> : F;
 type WithContext<T, C extends ContextToken<any, any>> = (T extends Immediate<infer E, infer U> ? {
   (): E;
-} & { [K in keyof Immediate<E, U>]: WrapReturns<Immediate<E, U>[K], C>; } : T) & {
+} & { [K in keyof Immediate<E, U>]: WrapReturn<Immediate<E, U>[K], C>; } : T) & {
   [__contextTokens]: C;
 };
 declare function createContext<const S extends string, T>(): ContextToken<S, T>;

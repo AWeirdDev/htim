@@ -48,18 +48,12 @@ declare const __contextTokens: unique symbol;
 // the building stage, and can cause problems when attempting to find contexts
 // because it checks the parent, while our node is currently completely detached
 // from the DOM. See more in `ContentsBuilder`.
-type WrapReturn<R, C extends ContextToken<any, any>> = R extends Immediate<
-    infer T2,
-    infer U2
->
-    ? WithContext<Immediate<T2, U2>, C>
-    : R;
-
-type WrapReturns<F, C extends ContextToken<any, any>> = F extends (
-    ...args: infer A extends readonly unknown[]
-) => infer R
-    ? (...contents: A) => WrapReturn<R, C>
+type WrapReturn<F, C extends ContextToken<any, any>> = F extends (
+    ...args: infer A
+) => Immediate<infer T2, infer U2>
+    ? (...contents: A) => WithContext<Immediate<T2, U2>, C>
     : F;
+
 
 export type WithContext<T, C extends ContextToken<any, any>> = (T extends Immediate<
     infer E,
@@ -68,7 +62,7 @@ export type WithContext<T, C extends ContextToken<any, any>> = (T extends Immedi
     ? {
           (): E;
       } & {
-          [K in keyof Immediate<E, U>]: WrapReturns<Immediate<E, U>[K], C>;
+          [K in keyof Immediate<E, U>]: WrapReturn<Immediate<E, U>[K], C>;
       }
     : T) & {
     [__contextTokens]: C;
