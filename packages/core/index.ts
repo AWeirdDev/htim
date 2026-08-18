@@ -174,7 +174,7 @@ class MutableFragment {
     }
 }
 
-const DOM_IMMEDIATE_TAG_HANDLER = (tag: string, rawContents: any[]) => {
+const DOM_IMMEDIATE_TAG_HANDLER = (target: any, tag: string, rawContents: any[]) => {
     // text node
     if (tag === "_" || tag === "text") {
         const node = document.createTextNode(
@@ -204,6 +204,12 @@ const DOM_IMMEDIATE_TAG_HANDLER = (tag: string, rawContents: any[]) => {
         return { element: fragment, immediateMode };
     }
 
+    if (tag.startsWith("on")) {
+        const eventName = tag.slice(2);
+        (target.inner as HTMLElement).addEventListener(eventName, rawContents[0]);
+        return {}
+    }
+
     const element = document.createElement(
         tag === "custom" ? rawContents[0] : tag,
     );
@@ -216,13 +222,15 @@ const DOM_IMMEDIATE_TAG_HANDLER = (tag: string, rawContents: any[]) => {
 };
 
 const DOM_IMMEDIATE_HANDLER = (target: any, tag: string, contents: any[]) => {
-    const { element, immediateMode } = DOM_IMMEDIATE_TAG_HANDLER(tag, contents);
+    const { element, immediateMode } = DOM_IMMEDIATE_TAG_HANDLER(target, tag, contents);
 
     // render
     const parent = target.inner;
     if (!parent)
         throw new TypeError("cannot add child: parent is null");
-    parent.appendChild(element);
+
+    if (element)
+        parent.appendChild(element);
 
     return immediateMode || target;
 };
@@ -278,7 +286,7 @@ const DOM_IMMEDIATE_FACTORY = createImmediateFactory<any, DomImmediateUtils>(DOM
 export function immediate<I extends Node>(
     inner: I,
 ): DomImmediate<I> {
-    return DOM_IMMEDIATE_FACTORY(inner);
+    return DOM_IMMEDIATE_FACTORY(inner) as any;
 }
 
 /**
