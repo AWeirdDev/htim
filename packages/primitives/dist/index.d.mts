@@ -1,11 +1,11 @@
 //#region index.d.ts
-type EventHandlers<T> = { [K in keyof GlobalEventHandlersEventMap as `on${K}`]?: (this: T, event: GlobalEventHandlersEventMap[K]) => any; };
+type MaybeEventHandlers<T> = { [K in keyof GlobalEventHandlersEventMap as `on${K}`]?: (this: T, event: GlobalEventHandlersEventMap[K]) => any; };
 type ReadonlyDOMProps = "offsetWidth" | "offsetHeight" | "offsetTop" | "offsetLeft" | "clientWidth" | "clientHeight" | "clientTop" | "clientLeft" | "scrollWidth" | "scrollHeight" | "nodeName" | "nodeType" | "nodeValue" | "parentNode" | "childNodes" | "firstChild" | "lastChild" | "previousSibling" | "nextSibling" | "attributes" | "ownerDocument" | "namespaceURI" | "tagName" | "innerHTML" | "outerHTML" | "textContent" | "innerText" | "outerText";
 type CamelToKebab<S extends string> = S extends `${infer A}${infer B}` ? B extends Uncapitalize<B> ? `${Lowercase<A>}${CamelToKebab<B>}` : `${Lowercase<A>}-${CamelToKebab<B>}` : S;
-type ExcludedHTMLProps = "children" | "style" | "className" | "classList" | "ELEMENT_NODE" | "ATTRIBUTE_NODE" | "TEXT_NODE" | "CDATA_SECTION_NODE" | "ENTITY_REFERENCE_NODE" | "ENTITY_NODE" | "PROCESSING_INSTRUCTION_NODE" | "COMMENT_NODE" | "DOCUMENT_NODE" | "DOCUMENT_TYPE_NODE" | "DOCUMENT_FRAGMENT_NODE" | "NOTATION_NODE" | "DOCUMENT_POSITION_DISCONNECTED" | "DOCUMENT_POSITION_PRECEDING" | "DOCUMENT_POSITION_FOLLOWING" | "DOCUMENT_POSITION_CONTAINS" | "DOCUMENT_POSITION_CONTAINED_BY" | "DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC" | "FILTER_ACCEPT" | "FILTER_REJECT" | "FILTER_SKIP" | "SHOW_ALL" | "SHOW_ELEMENT" | "SHOW_ATTRIBUTE" | "SHOW_TEXT" | "SHOW_CDATA_SECTION" | "SHOW_ENTITY_REFERENCE" | "SHOW_ENTITY" | "SHOW_PROCESSING_INSTRUCTION" | "SHOW_COMMENT" | "SHOW_DOCUMENT" | "SHOW_DOCUMENT_TYPE" | "SHOW_DOCUMENT_FRAGMENT" | "SHOW_NOTATION" | "NONE" | "CAPTURING_PHASE" | "AT_TARGET" | "BUBBLING_PHASE" | "DOM_KEY_LOCATION_STANDARD" | "DOM_KEY_LOCATION_LEFT" | "DOM_KEY_LOCATION_RIGHT" | "DOM_KEY_LOCATION_NUMPAD" | "BUTTON_LEFT" | "BUTTON_MIDDLE" | "BUTTON_RIGHT" | "BUTTON_BACK" | "BUTTON_FORWARD" | "STYLE_RULE" | "IMPORT_RULE" | "MEDIA_RULE" | "FONT_FACE_RULE" | "PAGE_RULE" | "KEYFRAMES_RULE" | "KEYFRAME_RULE" | "NAMESPACE_RULE" | "COUNTER_STYLE_RULE" | "SUPPORTS_RULE" | "DOCUMENT_RULE" | "START_TO_START" | "START_TO_END" | "END_TO_END" | "END_TO_START" | "UNSENT" | "OPENED" | "HEADERS_RECEIVED" | "LOADING" | "DONE" | ReadonlyDOMProps | keyof EventHandlers<any>;
+type ExcludedHTMLProps = "children" | "style" | "className" | "classList" | "ELEMENT_NODE" | "ATTRIBUTE_NODE" | "TEXT_NODE" | "CDATA_SECTION_NODE" | "ENTITY_REFERENCE_NODE" | "ENTITY_NODE" | "PROCESSING_INSTRUCTION_NODE" | "COMMENT_NODE" | "DOCUMENT_NODE" | "DOCUMENT_TYPE_NODE" | "DOCUMENT_FRAGMENT_NODE" | "NOTATION_NODE" | "DOCUMENT_POSITION_DISCONNECTED" | "DOCUMENT_POSITION_PRECEDING" | "DOCUMENT_POSITION_FOLLOWING" | "DOCUMENT_POSITION_CONTAINS" | "DOCUMENT_POSITION_CONTAINED_BY" | "DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC" | "FILTER_ACCEPT" | "FILTER_REJECT" | "FILTER_SKIP" | "SHOW_ALL" | "SHOW_ELEMENT" | "SHOW_ATTRIBUTE" | "SHOW_TEXT" | "SHOW_CDATA_SECTION" | "SHOW_ENTITY_REFERENCE" | "SHOW_ENTITY" | "SHOW_PROCESSING_INSTRUCTION" | "SHOW_COMMENT" | "SHOW_DOCUMENT" | "SHOW_DOCUMENT_TYPE" | "SHOW_DOCUMENT_FRAGMENT" | "SHOW_NOTATION" | "NONE" | "CAPTURING_PHASE" | "AT_TARGET" | "BUBBLING_PHASE" | "DOM_KEY_LOCATION_STANDARD" | "DOM_KEY_LOCATION_LEFT" | "DOM_KEY_LOCATION_RIGHT" | "DOM_KEY_LOCATION_NUMPAD" | "BUTTON_LEFT" | "BUTTON_MIDDLE" | "BUTTON_RIGHT" | "BUTTON_BACK" | "BUTTON_FORWARD" | "STYLE_RULE" | "IMPORT_RULE" | "MEDIA_RULE" | "FONT_FACE_RULE" | "PAGE_RULE" | "KEYFRAMES_RULE" | "KEYFRAME_RULE" | "NAMESPACE_RULE" | "COUNTER_STYLE_RULE" | "SUPPORTS_RULE" | "DOCUMENT_RULE" | "START_TO_START" | "START_TO_END" | "END_TO_END" | "END_TO_START" | "UNSENT" | "OPENED" | "HEADERS_RECEIVED" | "LOADING" | "DONE" | ReadonlyDOMProps | keyof MaybeEventHandlers<any>;
 type ExtractProps<T> = { [K in keyof T]: T[K] extends Function ? never : K; }[keyof T];
 type ElementProps<T extends HTMLElement> = Partial<Omit<Pick<T, ExtractProps<T>>, ExcludedHTMLProps>>;
-type Attributes<T extends HTMLElement> = { [K in keyof ElementProps<T> as CamelToKebab<K & string>]: ElementProps<T>[K]; } & EventHandlers<T> & {
+type Attributes<T extends HTMLElement> = { [K in keyof ElementProps<T> as CamelToKebab<K & string>]: ElementProps<T>[K]; } & MaybeEventHandlers<T> & {
   /**
    * CSS styles.
    *
@@ -39,7 +39,8 @@ type Attributes<T extends HTMLElement> = { [K in keyof ElementProps<T> as CamelT
  */
 type ContentsBuilder<I, U extends Record<string, any>> = ((I extends (infer P extends HTMLElement) ? Attributes<P> : never) | string | ImmediateCallback<I, U>)[];
 type CreateCallback<E extends HTMLElement, U extends Record<string, any>> = (...contents: ContentsBuilder<E, U>) => Immediate<E, U>;
-type ImmediateCreate<Utils extends Record<string, any>> = { [K in keyof HTMLElementTagNameMap]: CreateCallback<HTMLElementTagNameMap[K], Utils>; } & {
+type EventHandlerBuilder<T extends HTMLElement, U extends Record<string, any>, E = MaybeEventHandlers<T>> = { [K in keyof E]-?: ((handler: E[K]) => Immediate<T, U>); };
+type ImmediateCreate<T, Utils extends Record<string, any>> = { [K in keyof HTMLElementTagNameMap]: CreateCallback<HTMLElementTagNameMap[K], Utils>; } & {
   /**
    * Create an element with a custom tag.
    *
@@ -68,7 +69,7 @@ type ImmediateCreate<Utils extends Record<string, any>> = { [K in keyof HTMLElem
    * This doesn't necessarily use `DocumentFragment`.
    */
   fragment: (...contents: ContentsBuilder<any, Utils>) => Immediate<any, Utils>;
-};
+} & (T extends HTMLElement ? EventHandlerBuilder<T, Utils> : {});
 /**
  * Immediate mode specification.
  */
@@ -78,7 +79,7 @@ type Immediate<T, Utils extends Record<string, any> = {}> = {
    * The underlying element or any data.
    */
   inner: T;
-} & Utils & ImmediateCreate<Utils>;
+} & Utils & ImmediateCreate<T, Utils>;
 type ImmediateCallback<I, U extends Record<string, any>> = (e: Immediate<I, U>) => void;
 declare const IMMEDIATE_INTERNAL_FIELDS: readonly string[];
 /**

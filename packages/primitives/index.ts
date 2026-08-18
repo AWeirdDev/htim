@@ -9,7 +9,7 @@
     for us to reason about.
  */
 
-type EventHandlers<T> = {
+type MaybeEventHandlers<T> = {
     [K in keyof GlobalEventHandlersEventMap as `on${K}`]?: (
         this: T,
         event: GlobalEventHandlersEventMap[K],
@@ -125,7 +125,7 @@ type ExcludedHTMLProps =
     | "LOADING"
     | "DONE"
     | ReadonlyDOMProps
-    | keyof EventHandlers<any>;
+    | keyof MaybeEventHandlers<any>;
 
 type ExtractProps<T> = {
     [K in keyof T]: T[K] extends Function ? never : K;
@@ -139,7 +139,7 @@ type Attributes<T extends HTMLElement> = {
     [
         K in keyof ElementProps<T> as CamelToKebab<K & string>
     ]: ElementProps<T>[K];
-} & EventHandlers<T> & {
+} & MaybeEventHandlers<T> & {
         /**
          * CSS styles.
          *
@@ -184,7 +184,15 @@ type CreateCallback<E extends HTMLElement, U extends Record<string, any>> = (
     ...contents: ContentsBuilder<E, U>
 ) => Immediate<E, U>;
 
-type ImmediateCreate<Utils extends Record<string, any>> = {
+type EventHandlerBuilder<
+    T extends HTMLElement,
+    U extends Record<string, any>,
+    E = MaybeEventHandlers<T>
+> = {
+    [K in keyof E] -?: ((handler: E[K]) => Immediate<T, U>);
+};
+
+type ImmediateCreate<T, Utils extends Record<string, any>> = {
     [K in keyof HTMLElementTagNameMap]: CreateCallback<
         HTMLElementTagNameMap[K],
         Utils
@@ -225,7 +233,11 @@ type ImmediateCreate<Utils extends Record<string, any>> = {
      * This doesn't necessarily use `DocumentFragment`.
      */
     fragment: (...contents: ContentsBuilder<any, Utils>) => Immediate<any, Utils>;
-};
+} & (
+    T extends HTMLElement
+        ? EventHandlerBuilder<T, Utils>
+        : {}
+);
 
 /**
  * Immediate mode specification.
@@ -242,7 +254,7 @@ export type Immediate<T, Utils extends Record<string, any> = {}> = {
      * The underlying element or any data.
      */
     inner: T;
-} & Utils & ImmediateCreate<Utils>;
+} & Utils & ImmediateCreate<T, Utils>;
 
 export type ImmediateCallback<I, U extends Record<string, any>> = (
     e: Immediate<I, U>,
