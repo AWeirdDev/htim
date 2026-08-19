@@ -1,5 +1,5 @@
 # @htim/state
-**State support for [htim](https://github.com/AWeirdDev/htim).** This package provides `State<T>`, which serves as a simple wrapper over your data. This adds an extra indirection, making internal mutability possible, while keeping things clean and allowing you to subscribe state updates.
+**State support for [htim](https://github.com/AWeirdDev/htim).** This package provides `State<T>`, which serves as a simple wrapper over your data. This adds an extra indirection, making internal mutability possible, while keeping things clean and allowing you to subscribe to state updates.
 
 For example, a simple state that keeps track of a count:
 
