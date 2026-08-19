@@ -1,5 +1,5 @@
 # htim (core)
-An **HTML Immediate Mode single-file ([source code]) library**. The main idea is that everything gets rendered onto the DOM as your code execution progresses, and that preprocessing is not needed at all. To keep the entire premise, the API is designed to be lightweight and nothing other than the core idea is included.
+An **HTML Immediate Mode library**. The main idea is that everything gets rendered onto the DOM as your code execution progresses, and that preprocessing is not needed at all. To keep the entire premise, the API is designed to be lightweight and nothing other than the core idea is included.
 
 However, using this library comes with a great deal of responsibility. A lot of modern (bloated) libraries like React provide features like re-renders, states, hooks, signals, keyed lists, etc., but none are present in this library, which means it's up to you to decide what the logic is. You only get the necessities. Though, you can use your codebase tied with `htim` to show off how good you are at compiling your own UI logic.
 
@@ -120,29 +120,7 @@ frag.p("More paragraphs!");
 
 For technical details on how this is implemented, see the function `immediateFragment()` and the class `MutableFragment` in the [source code] for more information.
 
-### Replacing nodes
-**It is highly recommended** to use a fragment when replacing nodes. This is closer to the actual DOM itself, though it might be a bit uneasy to use at first. I suppose I'll make the API more intuitive any time soon.
-
-```js
-const div = parent.div();
-
-// within in the div, let's have a fragment
-const frag = div.$();
-frag.p("Hello!");
-frag.p("World!");
-
-// replace all
-frag.replace((rpl) => {
-    rpl.p("Replaced with us");
-    rpl.p("No hello!");
-});
-```
-
-Originally, there were two paragraphs `Hello!` and `World!`, but after `.replace()`, the div now only has  `Replaced with us` and `No hello!`.
-
-Fragments can be reused.
-
-### Getting element of immediate mode
+### Getting the element of an immediate mode
 Just call it.
 
 ```js
