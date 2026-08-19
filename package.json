@@ -5,7 +5,9 @@
   "dependencies": {
     "@htim/core": "workspace:*",
     "@htim/serde": "workspace:*",
-    "@htim/primitives": "workspace:*"
+    "@htim/primitives": "workspace:*",
+    "@htim/context": "workspace:*",
+    "@htim/state": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "latest",

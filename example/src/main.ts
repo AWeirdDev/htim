@@ -1,12 +1,27 @@
 import "./style.css";
 
 import { select } from "@htim/core";
-import { lossyBindContext, createContext, tryGetContext } from "@htim/context";
+import { depend, state } from "@htim/state";
 
-const Theme = createContext<"theme", "dark" | "light">();
+const $count = state(0);
+const $text = depend($count, (count) => {
+    return "HOLY SHIT it's now " + count
+});
 
-const app = lossyBindContext(select("#app"), Theme("dark"));
-const div = app.button("CLICK MEH");
+const app = select("#app");
 
-const theme = tryGetContext(div, Theme);
-console.log(theme);
+app.main((main) => {
+    main.h1("Welcome to my site!");
+
+    main.button((button) => {
+        const countText = button.text($text());
+
+        $text.subscribe((text) => {
+            countText.replaceText(text);
+        });
+
+        button.onclick(() => {
+            $count.updateWith(c => c + 1);
+        })
+    });
+});

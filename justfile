@@ -9,3 +9,6 @@ build-primitives:
 
 build-context:
     cd packages/context; bun run build;
+
+build-state:
+    cd packages/state; bun run build;
