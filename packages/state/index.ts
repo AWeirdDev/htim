@@ -208,6 +208,13 @@ export function depend(
     const deps = Array.isArray(d) ? d : [d];
     const collectDependencies = () => deps.map(st => st());
     const $depended = state(factory(...collectDependencies()));
+
+    deps.forEach((dep) => {
+        dep.subscribe(() => {
+            $depended.update(factory(...collectDependencies()));
+        });
+    });
+
     return $depended;
 }
 
