@@ -1,0 +1,51 @@
+{
+  "name": "@htim/jsx",
+  "version": "0.0.1",
+  "description": "JSX support for htim",
+  "repository": {
+    "url": "https://github.com/AWeirdDev/htim"
+  },
+  "author": {
+    "name": "AWeirdDev",
+    "email": "awdjared@gmail.com",
+    "url": "https://github.com/AWeirdDev"
+  },
+  "readme": "README.md",
+  "keywords": [
+    "html",
+    "immediate",
+    "dom"
+  ],
+  "license": "MIT OR UNLICENSED",
+  "module": "index.ts",
+  "type": "module",
+  "exports": {
+    "./jsx-runtime": {
+      "types": "./dist/jsx-runtime.d.mts",
+      "node": "./dist/jsx-runtime.mjs",
+      "import": "./dist/jsx-runtime.mjs"
+    },
+    "./jsx-dev-runtime": {
+      "types": "./dist/jsx-dev-runtime.d.mts",
+      "node": "./dist/jsx-dev-runtime.mjs",
+      "import": "./dist/jsx-dev-runtime.mjs"
+    }
+  },
+  "scripts": {
+    "build": "tsdown jsx-runtime.ts jsx-dev-runtime.ts --dts --out-dir dist --minify"
+  },
+  "dependencies": {
+    "@htim/primitives": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "tsdown": "^0.22.14"
+  },
+  "peerDependencies": {
+    "typescript": "^5 || ^6 || ^7"
+  },
+  "files": [
+    "./index.ts",
+    "./dist/*"
+  ]
+}

@@ -63,11 +63,11 @@ interface State<T> {
    */
   updateWith: (dispatcher: Dispatcher<T>) => T;
   /**
-   * Subscribe to state update triggers.
+   * Subscribe to update triggers.
    */
   subscribe: <S extends StateSubscriber<T>>(subscriber: S) => S;
   /**
-   * Remove a subscriber from state update triggers.
+   * Remove a subscriber from update triggers.
    */
   unsubscribe: (subscriber: StateSubscriber<T>) => void;
   /**
@@ -106,5 +106,27 @@ declare function depend<T, D extends State<any>>(dependencies: D, factory: (depe
  * in an array.
  */
 declare function depend<T, const D2 extends readonly State<any>[]>(dependencies: D2, factory: (...dependencies: ExtractDepsT<D2>) => T): State<T>;
+/**
+ * A notification.
+ *
+ * See `notification()` for more information.
+ */
+type Notification = Omit<State<undefined>, "value" | "updateWith" | "update"> & {
+  /**
+   * Notify all subscribers.
+   */
+  notifyAll: () => void;
+};
+/**
+ * Create a notifiaction that can be subscribed to and
+ * dispatched. Notifiactions do not carry data, their sole
+ * purpose is to notify a specific event happening, not
+ * "what's" happening.
+ *
+ * Under the hood, it uses a `State<undefined>` with some
+ * unnecessary methods type-erased, but it's perfect for
+ * making your code more readable as your codebase gets bigger.
+ */
+declare function notification(): Notification;
 //#endregion
-export { State, StateSubscriber, depend, state };
+export { Notification, State, StateSubscriber, depend, notification, state };

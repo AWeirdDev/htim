@@ -10,8 +10,9 @@
   },
   "dependencies": {
     "@emotion/css": "^11.13.5",
-    "@htim/core": "workspace:*",
     "@htim/context": "workspace:*",
+    "@htim/core": "workspace:*",
+    "@htim/serde": "^0.0.2",
     "@htim/state": "workspace:*"
   },
   "devDependencies": {

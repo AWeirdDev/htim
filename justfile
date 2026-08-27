@@ -12,3 +12,6 @@ build-context:
 
 build-state:
     cd packages/state; bun run build;
+
+build-jsx:
+    cd packages/jsx; bun run build;
