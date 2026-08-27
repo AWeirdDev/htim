@@ -1,5 +1,5 @@
 /*
-    htim -- v0.7.0 -- Public Domain -- https://github.com/AWeirdDev/htim
+    htim -- v0.7.1 -- Public Domain -- https://github.com/AWeirdDev/htim
 
     HTML immediate mode library. The main idea is that there's no need for
     special preprocessing just to render stuff. We can dump everything to
