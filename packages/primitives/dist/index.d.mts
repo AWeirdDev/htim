@@ -5,7 +5,9 @@ type CamelToKebab<S extends string> = S extends `${infer A}${infer B}` ? B exten
 type ExcludedHTMLProps = "children" | "style" | "className" | "classList" | "ELEMENT_NODE" | "ATTRIBUTE_NODE" | "TEXT_NODE" | "CDATA_SECTION_NODE" | "ENTITY_REFERENCE_NODE" | "ENTITY_NODE" | "PROCESSING_INSTRUCTION_NODE" | "COMMENT_NODE" | "DOCUMENT_NODE" | "DOCUMENT_TYPE_NODE" | "DOCUMENT_FRAGMENT_NODE" | "NOTATION_NODE" | "DOCUMENT_POSITION_DISCONNECTED" | "DOCUMENT_POSITION_PRECEDING" | "DOCUMENT_POSITION_FOLLOWING" | "DOCUMENT_POSITION_CONTAINS" | "DOCUMENT_POSITION_CONTAINED_BY" | "DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC" | "FILTER_ACCEPT" | "FILTER_REJECT" | "FILTER_SKIP" | "SHOW_ALL" | "SHOW_ELEMENT" | "SHOW_ATTRIBUTE" | "SHOW_TEXT" | "SHOW_CDATA_SECTION" | "SHOW_ENTITY_REFERENCE" | "SHOW_ENTITY" | "SHOW_PROCESSING_INSTRUCTION" | "SHOW_COMMENT" | "SHOW_DOCUMENT" | "SHOW_DOCUMENT_TYPE" | "SHOW_DOCUMENT_FRAGMENT" | "SHOW_NOTATION" | "NONE" | "CAPTURING_PHASE" | "AT_TARGET" | "BUBBLING_PHASE" | "DOM_KEY_LOCATION_STANDARD" | "DOM_KEY_LOCATION_LEFT" | "DOM_KEY_LOCATION_RIGHT" | "DOM_KEY_LOCATION_NUMPAD" | "BUTTON_LEFT" | "BUTTON_MIDDLE" | "BUTTON_RIGHT" | "BUTTON_BACK" | "BUTTON_FORWARD" | "STYLE_RULE" | "IMPORT_RULE" | "MEDIA_RULE" | "FONT_FACE_RULE" | "PAGE_RULE" | "KEYFRAMES_RULE" | "KEYFRAME_RULE" | "NAMESPACE_RULE" | "COUNTER_STYLE_RULE" | "SUPPORTS_RULE" | "DOCUMENT_RULE" | "START_TO_START" | "START_TO_END" | "END_TO_END" | "END_TO_START" | "UNSENT" | "OPENED" | "HEADERS_RECEIVED" | "LOADING" | "DONE" | ReadonlyDOMProps | keyof MaybeEventHandlers<any>;
 type ExtractProps<T> = { [K in keyof T]: T[K] extends Function ? never : K; }[keyof T];
 type ElementProps<T extends HTMLElement> = Partial<Omit<Pick<T, ExtractProps<T>>, ExcludedHTMLProps>>;
-type Attributes<T extends HTMLElement> = { [K in keyof ElementProps<T> as CamelToKebab<K & string>]: ElementProps<T>[K]; } & MaybeEventHandlers<T> & {
+type TransformTokenList<T> = T extends DOMTokenList ? string : T;
+type TransformPropType<T> = TransformTokenList<T>;
+type Attributes<T extends HTMLElement> = { [K in keyof ElementProps<T> as CamelToKebab<K & string>]: TransformPropType<ElementProps<T>[K]>; } & MaybeEventHandlers<T> & {
   /**
    * CSS styles.
    *
@@ -48,27 +50,43 @@ type ImmediateCreate<T, Utils extends Record<string, any>> = { [K in keyof HTMLE
    */
   custom: <E extends HTMLElement>(tag: string, ...contents: ContentsBuilder<E, Utils>) => Immediate<E, Utils>;
   /**
-   * Appends a text node.
+   * Append a text node.
    *
    * This is an alias of `text`.
    */
   _: (...contents: string[]) => Immediate<Text, Utils>;
   /**
-   * Appends a text node.
+   * Append a text node.
    */
   text: (...contents: string[]) => Immediate<Text, Utils>;
   /**
-   * Creates a fragment.
+   * Create a fragment.
    *
    * This is an alias of `fragment`.
    */
   $: (...contents: ContentsBuilder<any, Utils>) => Immediate<any, Utils>;
   /**
-   * Creates a fragment.
+   * Create a fragment.
    *
    * This doesn't necessarily use `DocumentFragment`.
    */
   fragment: (...contents: ContentsBuilder<any, Utils>) => Immediate<any, Utils>;
+  /**
+   * Render something onto the DOM for this node.
+   *
+   * For example:
+   * ```js
+   * const div = parent.div();
+   * div.render(d => d.p("aboba"));
+   * ```
+   *
+   * If you have JSX support:
+   * ```js
+   * const div = parent.div();
+   * div.render(<p>aboba</p>);
+   * ```
+   */
+  render: (callback: ImmediateCallback<T, Utils>) => void;
 } & (T extends HTMLElement ? EventHandlerBuilder<T, Utils> : {});
 /**
  * Immediate mode specification.
@@ -95,4 +113,4 @@ declare const IMMEDIATE_INTERNAL_FIELDS: readonly string[];
  */
 declare function createImmediateFactory<T, U extends Record<string, any> = {}, I = Immediate<T, U>>(handler: (target: I, tag: string, contents: any[]) => Immediate<any, any>, utils: U): (inner: T) => I;
 //#endregion
-export { ContentsBuilder, IMMEDIATE_INTERNAL_FIELDS, Immediate, ImmediateCallback, createImmediateFactory };
+export { Attributes, ContentsBuilder, EventHandlerBuilder, IMMEDIATE_INTERNAL_FIELDS, Immediate, ImmediateCallback, MaybeEventHandlers, createImmediateFactory };

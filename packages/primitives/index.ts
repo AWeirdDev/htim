@@ -1,5 +1,5 @@
 /*
-    htim primitives -- v0.0.1 -- Public Domain -- https://github.com/AWeirdDev/htim
+    htim primitives -- v0.0.2 -- Public Domain -- https://github.com/AWeirdDev/htim
 
     Primitives for the htim ecosystem.
 
@@ -9,7 +9,7 @@
     for us to reason about.
  */
 
-type MaybeEventHandlers<T> = {
+export type MaybeEventHandlers<T> = {
     [K in keyof GlobalEventHandlersEventMap as `on${K}`]?: (
         this: T,
         event: GlobalEventHandlersEventMap[K],
@@ -135,10 +135,13 @@ type ElementProps<T extends HTMLElement> = Partial<
     Omit<Pick<T, ExtractProps<T>>, ExcludedHTMLProps>
 >;
 
-type Attributes<T extends HTMLElement> = {
+type TransformTokenList<T> = T extends DOMTokenList ? string : T;
+type TransformPropType<T> = TransformTokenList<T>;
+
+export type Attributes<T extends HTMLElement> = {
     [
         K in keyof ElementProps<T> as CamelToKebab<K & string>
-    ]: ElementProps<T>[K];
+    ]: TransformPropType<ElementProps<T>[K]>;
 } & MaybeEventHandlers<T> & {
         /**
          * CSS styles.
@@ -184,7 +187,7 @@ type CreateCallback<E extends HTMLElement, U extends Record<string, any>> = (
     ...contents: ContentsBuilder<E, U>
 ) => Immediate<E, U>;
 
-type EventHandlerBuilder<
+export type EventHandlerBuilder<
     T extends HTMLElement,
     U extends Record<string, any>,
     E = MaybeEventHandlers<T>
@@ -209,30 +212,47 @@ type ImmediateCreate<T, Utils extends Record<string, any>> = {
     ) => Immediate<E, Utils>;
 
     /**
-     * Appends a text node.
+     * Append a text node.
      *
      * This is an alias of `text`.
      */
     _: (...contents: string[]) => Immediate<Text, Utils>;
 
     /**
-     * Appends a text node.
+     * Append a text node.
      */
     text: (...contents: string[]) => Immediate<Text, Utils>;
 
     /**
-     * Creates a fragment.
+     * Create a fragment.
      *
      * This is an alias of `fragment`.
      */
     $: (...contents: ContentsBuilder<any, Utils>) => Immediate<any, Utils>;
 
     /**
-     * Creates a fragment.
+     * Create a fragment.
      *
      * This doesn't necessarily use `DocumentFragment`.
      */
     fragment: (...contents: ContentsBuilder<any, Utils>) => Immediate<any, Utils>;
+
+    /**
+     * Render something onto the DOM for this node.
+     *
+     * For example:
+     * ```js
+     * const div = parent.div();
+     * div.render(d => d.p("aboba"));
+     * ```
+     *
+     * If you have JSX support:
+     * ```js
+     * const div = parent.div();
+     * div.render(<p>aboba</p>);
+     * ```
+     */
+    render: (callback: ImmediateCallback<T, Utils>) => void;
 } & (
     T extends HTMLElement
         ? EventHandlerBuilder<T, Utils>
@@ -263,8 +283,8 @@ export type ImmediateCallback<I, U extends Record<string, any>> = (
 export const IMMEDIATE_INTERNAL_FIELDS: readonly string[] = [
     "inner",
 
+    // The then keyword is special:
     "then",
-    //  ^^^^^^
     // This is to prevent direct await makes this NEVER resolve, or when this is put inside of an async
     // block and is used as a return value, it never resolves. From MDN:
     //
@@ -277,6 +297,9 @@ export const IMMEDIATE_INTERNAL_FIELDS: readonly string[] = [
     //
     // We have to add a special case here to prevent `then` from returning
     // a function.
+
+    // This will be automatically implemented:
+    "render",
 ];
 
 /**
@@ -310,11 +333,15 @@ export function createImmediateFactory<
 
     return (inner) => {
         const res = function () {
-            return (res as any).inner;
-        };
-        (res as any).inner = inner;
+            return res.inner;
+        } as any;
+        res.inner = inner;
 
-        return new Proxy(res, proxyHandler);
+        const proxied = new Proxy(res, proxyHandler);
+        res.render = (cb: ImmediateCallback<T, U>) => cb(proxied);
+
+        return proxied;
+
     };
 }
 
