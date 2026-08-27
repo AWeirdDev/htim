@@ -1,5 +1,5 @@
 /*
-    htim -- v0.6.0 -- Public Domain -- https://github.com/AWeirdDev/htim
+    htim -- v0.7.0 -- Public Domain -- https://github.com/AWeirdDev/htim
 
     HTML immediate mode library. The main idea is that there's no need for
     special preprocessing just to render stuff. We can dump everything to
@@ -46,8 +46,8 @@ export interface DomImmediateUtils {
 export type DomContents = ContentsBuilder<any, DomImmediateUtils>;
 export type DomImmediate<N extends Node> = Immediate<N, DomImmediateUtils>;
 
-export type ImmediateFragment = Immediate<MutableFragment, DomImmediateUtils>;
-export type ImmediateFragmentCallback = (frag: ImmediateFragment) => void;
+export type DomImmediateFragment = Immediate<MutableFragment, DomImmediateUtils>;
+export type DomImmediateFragmentCallback = (frag: DomImmediateFragment) => void;
 
 function addAttribute(element: HTMLElement, key: string, value: any) {
     switch (key) {
@@ -254,7 +254,7 @@ const DOM_IMMEDIATE_FRAG_UTILS = {
 
 const DOM_IMMEDIATE_FRAG_FACTORY = createImmediateFactory(DOM_IMMEDIATE_HANDLER, DOM_IMMEDIATE_FRAG_UTILS);
 
-function immediateFragment(start: Node, end: Node): ImmediateFragment {
+function immediateFragment(start: Node, end: Node): DomImmediateFragment {
     const mf = new MutableFragment(start, end);
     return DOM_IMMEDIATE_FRAG_FACTORY(mf);
 }
@@ -336,6 +336,71 @@ export function selectAll<const T extends DomImmediate<any>[]>(
     return (
         Array.from(document.querySelectorAll(selector)) as HTMLElement[]
     ).map(immediate) as any;
+}
+
+export interface Ref<N extends Node> {
+    /**
+     * Get the underlying immediate mode, in a sense, "dereferencing."
+     *
+     * @throws A `TypeError` will be thrown if the target is not set.
+     */
+    get: () => DomImmediate<N>;
+
+    /**
+     * Set the given immediate mode as the target of this reference.
+     *
+     * This also implies a reference target can be mutable.
+     */
+    set: (mode: DomImmediate<N>) => void;
+
+    inner?: DomImmediate<N>;
+}
+
+const REF_PROTOTYPE = {
+    set(mode) {
+        this.inner = mode;
+    },
+
+    get() {
+        const inner = this.inner;
+        if (!inner)
+            throw new TypeError("reference target is not set");
+        return inner;
+    }
+} as Ref<any>;
+
+/**
+ * Create a reference to an immediate mode.
+ *
+ * This is useful when you need to use an immediate mode
+ * that's deep down in your code.
+ *
+ * Use `set()` to set the reference target, and use `get()`
+ * to get the underlying immediate mode.
+ *
+ * ```ts
+ * const buttonRef = ref();
+ *
+ * parent.div((div) => {
+ *     const btn = div.button("Hello!");
+ *     buttonRef.set(btn);
+ * });
+ *
+ * buttonRef.get().replaceText("Hello, World!");
+ * ```
+ */
+export function ref<N extends Node>(): Ref<N> {
+    // for code readability reasons, i will not be adding
+    // a call like a state. because if so, your code looks like this
+    // when you have to get the DOM element:
+    //
+    //   buttonRef()();
+    //
+    // This makes everything really difficult to understand.
+
+    const getter = <Ref<N>>{};
+    Object.setPrototypeOf(getter, REF_PROTOTYPE);
+    return getter;
 }
 
 /*
