@@ -27,8 +27,8 @@ interface DomImmediateUtils {
 }
 type DomContents = ContentsBuilder<any, DomImmediateUtils>;
 type DomImmediate<N extends Node> = Immediate<N, DomImmediateUtils>;
-type ImmediateFragment = Immediate<MutableFragment, DomImmediateUtils>;
-type ImmediateFragmentCallback = (frag: ImmediateFragment) => void;
+type DomImmediateFragment = Immediate<MutableFragment, DomImmediateUtils>;
+type DomImmediateFragmentCallback = (frag: DomImmediateFragment) => void;
 /**
  * A primitive which implements a fragment which can be put onto the DOM
  * and still be mutable.
@@ -97,5 +97,41 @@ declare function select<E extends HTMLElement>(selector: string): DomImmediate<E
  * @param selector The CSS selector.
  */
 declare function selectAll<const T extends DomImmediate<any>[]>(selector: string): T;
+interface Ref<N extends Node> {
+  /**
+   * Get the underlying immediate mode, in a sense, "dereferencing."
+   *
+   * @throws A `TypeError` will be thrown if the target is not set.
+   */
+  get: () => DomImmediate<N>;
+  /**
+   * Set the given immediate mode as the target of this reference.
+   *
+   * This also implies a reference target can be mutable.
+   */
+  set: (mode: DomImmediate<N>) => void;
+  inner?: DomImmediate<N>;
+}
+/**
+ * Create a reference to an immediate mode.
+ *
+ * This is useful when you need to use an immediate mode
+ * that's deep down in your code.
+ *
+ * Use `set()` to set the reference target, and use `get()`
+ * to get the underlying immediate mode.
+ *
+ * ```ts
+ * const buttonRef = ref();
+ *
+ * parent.div((div) => {
+ *     const btn = div.button("Hello!");
+ *     buttonRef.set(btn);
+ * });
+ *
+ * buttonRef.get().replaceText("Hello, World!");
+ * ```
+ */
+declare function ref<N extends Node>(): Ref<N>;
 //#endregion
-export { DomContents, DomImmediate, DomImmediateUtils, ImmediateFragment, ImmediateFragmentCallback, immediate, select, selectAll };
+export { DomContents, DomImmediate, DomImmediateFragment, DomImmediateFragmentCallback, DomImmediateUtils, Ref, immediate, ref, select, selectAll };
