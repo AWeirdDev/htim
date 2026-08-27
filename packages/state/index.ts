@@ -1,5 +1,5 @@
 /*
-    htim state -- v0.0.1 -- Public Domain -- https://github.com/AWeirdDev/htim
+    htim state -- v0.0.2 -- Public Domain -- https://github.com/AWeirdDev/htim
  */
 
 export type StateSubscriber<T> = (current: T) => void;
@@ -72,12 +72,12 @@ export interface State<T> {
     updateWith: (dispatcher: Dispatcher<T>) => T;
 
     /**
-     * Subscribe to state update triggers.
+     * Subscribe to update triggers.
      */
     subscribe: <S extends StateSubscriber<T>>(subscriber: S) => S;
 
     /**
-     * Remove a subscriber from state update triggers.
+     * Remove a subscriber from update triggers.
      */
     unsubscribe: (subscriber: StateSubscriber<T>) => void;
 
@@ -216,6 +216,37 @@ export function depend(
     });
 
     return $depended;
+}
+
+/**
+ * A notification.
+ *
+ * See `notification()` for more information.
+ */
+export type Notification = Omit<
+    State<undefined>, "value" | "updateWith" | "update"
+> & {
+    // (): never;
+
+    /**
+     * Notify all subscribers.
+     */
+    notifyAll: () => void;
+};
+
+/**
+ * Create a notifiaction that can be subscribed to and
+ * dispatched. Notifiactions do not carry data, their sole
+ * purpose is to notify a specific event happening, not
+ * "what's" happening.
+ *
+ * Under the hood, it uses a `State<undefined>` with some
+ * unnecessary methods type-erased, but it's perfect for
+ * making your code more readable as your codebase gets bigger.
+ */
+export function notification(): Notification {
+    // 'as any' requried for type erasing
+    return state(undefined) as any;
 }
 
 /*

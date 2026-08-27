@@ -1,7 +1,7 @@
 {
   "name": "@htim/state",
-  "version": "0.0.1",
-  "description": "Application state management",
+  "version": "0.0.2",
+  "description": "Application state & notification management",
   "repository": {
     "url": "https://github.com/AWeirdDev/htim"
   },
@@ -23,8 +23,7 @@
     ".": {
       "types": "./dist/index.d.mts",
       "node": "./dist/index.mjs",
-      "import": "./dist/index.mjs",
-      "development": "./index.ts"
+      "import": "./dist/index.mjs"
     }
   },
   "scripts": {
