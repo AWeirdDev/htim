@@ -1,6 +1,6 @@
 {
   "name": "@htim/serde",
-  "version": "0.0.2+spec-0.0.1",
+  "version": "0.0.3+spec-0.0.1",
   "description": "HTML immediate de(serialization) mode",
   "repository": {
     "url": "https://github.com/AWeirdDev/htim"
